@@ -12,7 +12,8 @@ interface AskAIProps {
 
 export const AskAI = ({ userType }: AskAIProps) => {
   const [message, setMessage] = useState("");
-  const [response, setResponse] = useState("");
+  const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([]);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -27,13 +28,18 @@ export const AskAI = ({ userType }: AskAIProps) => {
     }
 
     setIsLoading(true);
-    setResponse("");
+    const userMessage = message.trim();
+    setMessage("");
+    
+    // Add user message to UI immediately
+    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
 
     try {
       const { data, error } = await supabase.functions.invoke('ask-ai', {
         body: { 
-          message: message.trim(),
-          userType 
+          message: userMessage,
+          userType,
+          conversationId
         }
       });
 
@@ -58,19 +64,26 @@ export const AskAI = ({ userType }: AskAIProps) => {
             variant: "destructive",
           });
         }
+        // Remove the user message on error
+        setMessages(prev => prev.slice(0, -1));
+        setMessage(userMessage);
         setIsLoading(false);
         return;
       }
 
       if (data && data.response) {
-        setResponse(data.response);
-        setMessage("");
+        setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+        if (data.conversationId) {
+          setConversationId(data.conversationId);
+        }
       } else {
         toast({
           title: "Errore",
           description: "Risposta non valida dall'AI.",
           variant: "destructive",
         });
+        setMessages(prev => prev.slice(0, -1));
+        setMessage(userMessage);
       }
     } catch (error) {
       console.error('Error asking AI:', error);
@@ -79,6 +92,8 @@ export const AskAI = ({ userType }: AskAIProps) => {
         description: "Non è stato possibile ottenere una risposta. Riprova.",
         variant: "destructive",
       });
+      setMessages(prev => prev.slice(0, -1));
+      setMessage(userMessage);
     } finally {
       setIsLoading(false);
     }
@@ -103,7 +118,27 @@ export const AskAI = ({ userType }: AskAIProps) => {
           <span className="text-sm font-medium">ask to ai</span>
         </div>
         
-        <div className="flex gap-2 mb-3">
+        {messages.length > 0 && (
+          <div className="mb-3 max-h-48 overflow-y-auto space-y-2">
+            {messages.map((msg, idx) => (
+              <div
+                key={idx}
+                className={`p-2 rounded-lg text-sm ${
+                  msg.role === 'user'
+                    ? 'bg-primary/10 ml-8'
+                    : 'bg-background/50 mr-8'
+                }`}
+              >
+                <p className="text-xs font-medium mb-1 opacity-70">
+                  {msg.role === 'user' ? 'Tu' : 'AI'}
+                </p>
+                <p className="text-foreground whitespace-pre-wrap">{msg.content}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex gap-2">
           <Input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -125,12 +160,6 @@ export const AskAI = ({ userType }: AskAIProps) => {
             )}
           </Button>
         </div>
-
-        {response && (
-          <div className="mt-3 p-3 bg-background/50 rounded-lg border border-border">
-            <p className="text-sm text-foreground whitespace-pre-wrap">{response}</p>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
