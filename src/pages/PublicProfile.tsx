@@ -4,6 +4,19 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import { 
   MapPin,
   Star,
@@ -15,9 +28,49 @@ import {
   Instagram,
   Linkedin
 } from "lucide-react";
+import { useState } from "react";
 
 const PublicProfile = () => {
   const { id } = useParams();
+  const { toast } = useToast();
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const [inviteForm, setInviteForm] = useState({
+    job: "",
+    message: "",
+  });
+  const [contactForm, setContactForm] = useState({
+    name: "",
+    email: "",
+    message: "",
+  });
+
+  // Mock jobs for invitation
+  const availableJobs = [
+    { id: "1", title: "Hostess per Fashion Week Milano - 15-18 Dic" },
+    { id: "2", title: "Promoter Evento Sportivo - 20 Dic" },
+    { id: "3", title: "Steward per Concerto Arena - 18 Dic" },
+  ];
+
+  const handleInvite = (e: React.FormEvent) => {
+    e.preventDefault();
+    toast({
+      title: "Invito inviato!",
+      description: `Invito per ${profile.firstName} inviato con successo.`,
+    });
+    setInviteDialogOpen(false);
+    setInviteForm({ job: "", message: "" });
+  };
+
+  const handleContact = (e: React.FormEvent) => {
+    e.preventDefault();
+    toast({
+      title: "Messaggio inviato!",
+      description: `Il tuo messaggio è stato inviato a ${profile.firstName}.`,
+    });
+    setContactDialogOpen(false);
+    setContactForm({ name: "", email: "", message: "" });
+  };
 
   // Mock profile data
   const profile = {
@@ -137,14 +190,110 @@ const PublicProfile = () => {
 
                 {/* Action Buttons */}
                 <div className="flex gap-3 mt-6 pt-6 border-t border-border">
-                  <Button className="bg-gradient-primary">
-                    <Mail className="h-4 w-4 mr-2" />
-                    Invita per Lavoro
-                  </Button>
-                  <Button variant="outline">
-                    <Phone className="h-4 w-4 mr-2" />
-                    Contatta
-                  </Button>
+                  <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="bg-gradient-primary">
+                        <Mail className="h-4 w-4 mr-2" />
+                        Invita per Lavoro
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Invita {profile.firstName} per un Lavoro</DialogTitle>
+                        <DialogDescription>
+                          Seleziona un lavoro e invia un invito diretto a questo professionista
+                        </DialogDescription>
+                      </DialogHeader>
+                      <form onSubmit={handleInvite} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="job">Seleziona Lavoro</Label>
+                          <Select
+                            value={inviteForm.job}
+                            onValueChange={(value) => setInviteForm({ ...inviteForm, job: value })}
+                            required
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Scegli un lavoro..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {availableJobs.map((job) => (
+                                <SelectItem key={job.id} value={job.id}>
+                                  {job.title}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="invite-message">Messaggio (opzionale)</Label>
+                          <Textarea
+                            id="invite-message"
+                            placeholder="Scrivi un messaggio personalizzato..."
+                            value={inviteForm.message}
+                            onChange={(e) => setInviteForm({ ...inviteForm, message: e.target.value })}
+                            rows={4}
+                          />
+                        </div>
+                        <Button type="submit" className="w-full bg-gradient-primary">
+                          Invia Invito
+                        </Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+
+                  <Dialog open={contactDialogOpen} onOpenChange={setContactDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline">
+                        <Phone className="h-4 w-4 mr-2" />
+                        Contatta
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Contatta {profile.firstName}</DialogTitle>
+                        <DialogDescription>
+                          Invia un messaggio diretto a questo professionista
+                        </DialogDescription>
+                      </DialogHeader>
+                      <form onSubmit={handleContact} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="contact-name">Nome</Label>
+                          <Input
+                            id="contact-name"
+                            placeholder="Il tuo nome"
+                            value={contactForm.name}
+                            onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="contact-email">Email</Label>
+                          <Input
+                            id="contact-email"
+                            type="email"
+                            placeholder="tua@email.it"
+                            value={contactForm.email}
+                            onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="contact-message">Messaggio</Label>
+                          <Textarea
+                            id="contact-message"
+                            placeholder="Scrivi il tuo messaggio..."
+                            value={contactForm.message}
+                            onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                            required
+                            rows={4}
+                          />
+                        </div>
+                        <Button type="submit" className="w-full bg-gradient-primary">
+                          Invia Messaggio
+                        </Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </CardContent>
             </Card>
