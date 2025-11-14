@@ -1,7 +1,8 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useProfile } from "@/hooks/useProfile";
@@ -10,6 +11,8 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useFeedbacks } from "@/hooks/useFeedbacks";
 import { useUserRole } from "@/hooks/useUserRole";
 import CompanyDashboard from "@/pages/company/Dashboard";
+import { parseISO } from "date-fns";
+import { it } from "date-fns/locale";
 import { 
   Briefcase, 
   Send, 
@@ -24,6 +27,7 @@ import {
 } from "lucide-react";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { profile, isLoading: profileLoading } = useProfile();
   const { data: userRole, isLoading: roleLoading } = useUserRole();
   const { applications: sendedApps } = useApplications('sended');
@@ -42,6 +46,25 @@ const Dashboard = () => {
 
   const recentNotifications = notifications.slice(0, 3);
   const recentFeedbacks = feedbacks.slice(0, 3);
+
+  // Get dates with events for mini calendar
+  const jobs = confirmedApps?.map(app => ({
+    ...app.jobs,
+    applicationId: app.id,
+  })) || [];
+
+  const datesWithEvents = jobs.map(job => ({
+    start: parseISO(job.start_date),
+    end: parseISO(job.end_date),
+  }));
+
+  const hasEvent = (date: Date) => {
+    return datesWithEvents.some(event => {
+      const start = event.start;
+      const end = event.end;
+      return date >= start && date <= end;
+    });
+  };
 
   if (profileLoading || roleLoading) {
     return (
@@ -320,6 +343,34 @@ const Dashboard = () => {
                       </div>
                     ))
                   )}
+                </CardContent>
+              </Card>
+
+              {/* Mini Calendar */}
+              <Card className="mt-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/user/calendar')}>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CalendarIcon className="h-5 w-5" />
+                    Calendario
+                  </CardTitle>
+                  <CardDescription>Clicca per vedere tutti i tuoi lavori</CardDescription>
+                </CardHeader>
+                <CardContent className="flex justify-center">
+                  <Calendar
+                    mode="single"
+                    locale={it}
+                    className="rounded-md border scale-90"
+                    modifiers={{
+                      hasEvent: (date) => hasEvent(date),
+                    }}
+                    modifiersStyles={{
+                      hasEvent: {
+                        fontWeight: 'bold',
+                        backgroundColor: 'hsl(var(--primary) / 0.2)',
+                        color: 'hsl(var(--primary))',
+                      },
+                    }}
+                  />
                 </CardContent>
               </Card>
             </div>
