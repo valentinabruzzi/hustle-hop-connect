@@ -8,6 +8,8 @@ import { useProfile } from "@/hooks/useProfile";
 import { useApplications } from "@/hooks/useApplications";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useFeedbacks } from "@/hooks/useFeedbacks";
+import { useUserRole } from "@/hooks/useUserRole";
+import CompanyDashboard from "@/pages/company/Dashboard";
 import { 
   Briefcase, 
   Send, 
@@ -22,6 +24,7 @@ import {
 
 const Dashboard = () => {
   const { profile, isLoading: profileLoading } = useProfile();
+  const { data: userRole, isLoading: roleLoading } = useUserRole();
   const { applications: sendedApps } = useApplications('sended');
   const { applications: fastbookApps } = useApplications('fastbooks');
   const { applications: confirmedApps } = useApplications('confirmed');
@@ -39,12 +42,17 @@ const Dashboard = () => {
   const recentNotifications = notifications.slice(0, 3);
   const recentFeedbacks = feedbacks.slice(0, 3);
 
-  if (profileLoading) {
+  if (profileLoading || roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
+  }
+
+  // Render company dashboard if user is a company
+  if (userRole === 'azienda') {
+    return <CompanyDashboard />;
   }
 
   return (
