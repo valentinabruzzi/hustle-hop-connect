@@ -6,6 +6,20 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import Dipendenti from "./pages/Dipendenti";
+import Promoter from "./pages/Promoter";
+import Aziende from "./pages/Aziende";
+import Contacts from "./pages/Contacts";
+import FaqDipendenti from "./pages/FaqDipendenti";
+import FaqAziende from "./pages/FaqAziende";
+import ComeFunzionaHostess from "./pages/ComeFunzionaHostess";
+import ComeFunzionaAziende from "./pages/ComeFunzionaAziende";
+import CreateProfile from "./pages/CreateProfile";
+import Blog from "./pages/Blog";
+import Privacy from "./pages/Privacy";
+import Cookie from "./pages/Cookie";
+import Terms from "./pages/Terms";
 import ExploreJobs from "./pages/ExploreJobs";
 import JobDetail from "./pages/JobDetail";
 import PublicProfile from "./pages/PublicProfile";
@@ -46,6 +60,20 @@ const App = () => (
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/dipendenti" element={<Dipendenti />} />
+          <Route path="/promoter" element={<Promoter />} />
+          <Route path="/aziende" element={<Aziende />} />
+          <Route path="/contacts" element={<Contacts />} />
+          <Route path="/faq-dipendenti" element={<FaqDipendenti />} />
+          <Route path="/faq-aziende" element={<FaqAziende />} />
+          <Route path="/come-funziona-hostess" element={<ComeFunzionaHostess />} />
+          <Route path="/come-funziona-aziende" element={<ComeFunzionaAziende />} />
+          <Route path="/crea-un-profilo-hostess-steward-di-successo" element={<CreateProfile />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/cookie" element={<Cookie />} />
+          <Route path="/terms" element={<Terms />} />
           <Route path="/esplora-lavori" element={<ExploreJobs />} />
           <Route path="/lavoro/:id" element={<JobDetail />} />
           <Route path="/dipendente-milano/:id" element={<PublicProfile />} />
