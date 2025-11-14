@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { useApplications } from "@/hooks/useApplications";
 import { 
   ArrowLeft,
   Calendar,
@@ -14,83 +15,24 @@ import {
 } from "lucide-react";
 
 const ClosedJobs = () => {
-  const closedJobs = [
-    {
-      id: 1,
-      jobTitle: "Hostess Fashion Week Milano 2024",
-      company: "Fashion Events SRL",
-      city: "Milano",
-      date: "10 Nov 2024",
-      compensation: "€150/giorno",
-      completedDate: "3 settimane fa",
-      rating: 5,
-      feedback: "Eccellente professionalità. Raccomandata!"
-    },
-    {
-      id: 2,
-      jobTitle: "Promoter Centro Commerciale",
-      company: "Retail Marketing",
-      city: "Milano",
-      date: "25 Ott 2024",
-      compensation: "€100/giorno",
-      completedDate: "1 mese fa",
-      rating: 4,
-      feedback: "Ottimo lavoro, puntuale e professionale."
-    },
-    {
-      id: 3,
-      jobTitle: "Steward Concerto San Siro",
-      company: "Live Events Italia",
-      city: "Milano",
-      date: "15 Ott 2024",
-      compensation: "€130/giorno",
-      completedDate: "1 mese fa",
-      rating: 5,
-      feedback: "Perfetta gestione del pubblico. Grazie!"
-    },
-    {
-      id: 4,
-      jobTitle: "Hostess Fiera Artigianato",
-      company: "Expo Management",
-      city: "Roma",
-      date: "5 Ott 2024",
-      compensation: "€120/giorno",
-      completedDate: "2 mesi fa",
-      rating: 4,
-      feedback: null
-    },
-    {
-      id: 5,
-      jobTitle: "Promoter Evento Sportivo",
-      company: "Sport Marketing",
-      city: "Milano",
-      date: "20 Set 2024",
-      compensation: "€110/giorno",
-      completedDate: "2 mesi fa",
-      rating: 5,
-      feedback: "Sempre affidabile e professionale."
-    },
-    {
-      id: 6,
-      jobTitle: "Steward Manifestazione Culturale",
-      company: "Culture Events",
-      city: "Torino",
-      date: "10 Set 2024",
-      compensation: "€100/giorno",
-      completedDate: "3 mesi fa",
-      rating: 3,
-      feedback: null
-    }
-  ];
+  const { applications: closedJobs = [], isLoading } = useApplications('closed');
 
-  const totalEarnings = closedJobs.reduce((sum, job) => {
-    const amount = parseInt(job.compensation.replace(/[^0-9]/g, ''));
+  const totalEarnings = closedJobs.reduce((sum: number, job: any) => {
+    const amount = parseInt(job.jobs?.compensation?.replace(/[^0-9]/g, '') || '0');
     return sum + amount;
   }, 0);
 
-  const averageRating = (
-    closedJobs.reduce((sum, job) => sum + job.rating, 0) / closedJobs.length
-  ).toFixed(1);
+  const averageRating = closedJobs.length > 0 
+    ? (closedJobs.reduce((sum: number, job: any) => sum + (job.rating || 0), 0) / closedJobs.length).toFixed(1)
+    : '0.0';
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -162,13 +104,24 @@ const ClosedJobs = () => {
 
           {/* Jobs List */}
           <div className="space-y-4 max-w-4xl">
-            {closedJobs.map((job) => (
+            {closedJobs.length === 0 ? (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Nessun lavoro concluso</h3>
+                  <p className="text-muted-foreground">
+                    Non hai ancora completato nessun lavoro.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              closedJobs.map((job: any) => (
               <Card key={job.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div className="flex-1">
-                      <h3 className="text-xl font-semibold mb-1">{job.jobTitle}</h3>
-                      <p className="text-muted-foreground">{job.company}</p>
+                      <h3 className="text-xl font-semibold mb-1">{job.jobs?.title}</h3>
+                      <p className="text-muted-foreground">{job.jobs?.company_name}</p>
                     </div>
                     <Badge variant="outline" className="border-muted-foreground text-muted-foreground">
                       Concluso
@@ -178,15 +131,15 @@ const ClosedJobs = () => {
                   <div className="grid sm:grid-cols-2 gap-3 mb-4">
                     <div className="flex items-center gap-2 text-sm">
                       <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span>{job.city}</span>
+                      <span>{job.jobs?.city}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span>{job.date}</span>
+                      <span>{new Date(job.jobs?.start_date).toLocaleDateString('it-IT')}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span>Completato {job.completedDate}</span>
+                      <span>Completato {new Date(job.updated_at).toLocaleDateString('it-IT')}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm font-semibold">
                       <Euro className="h-4 w-4 text-muted-foreground" />
@@ -225,7 +178,8 @@ const ClosedJobs = () => {
                   </Button>
                 </CardContent>
               </Card>
-            ))}
+              ))
+            )}
 
             {closedJobs.length === 0 && (
               <Card>
