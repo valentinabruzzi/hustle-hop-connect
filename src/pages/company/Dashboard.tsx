@@ -1,13 +1,16 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useProfile } from "@/hooks/useProfile";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { parseISO } from "date-fns";
+import { it } from "date-fns/locale";
 import { 
   Briefcase, 
   Users, 
@@ -20,6 +23,7 @@ import {
 } from "lucide-react";
 
 const CompanyDashboard = () => {
+  const navigate = useNavigate();
   const { profile, isLoading: profileLoading } = useProfile();
   const { user } = useAuth();
 
@@ -67,6 +71,20 @@ const CompanyDashboard = () => {
 
   const recentApplications = applications?.slice(0, 5) || [];
   const recentJobs = jobs?.slice(0, 3) || [];
+
+  // Get dates with events for mini calendar
+  const datesWithEvents = jobs?.map(job => ({
+    start: parseISO(job.start_date),
+    end: parseISO(job.end_date),
+  })) || [];
+
+  const hasEvent = (date: Date) => {
+    return datesWithEvents.some(event => {
+      const start = event.start;
+      const end = event.end;
+      return date >= start && date <= end;
+    });
+  };
 
   if (profileLoading) {
     return (
@@ -301,6 +319,34 @@ const CompanyDashboard = () => {
                     </Button>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+
+            {/* Mini Calendar */}
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/company/calendar')}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CalendarIcon className="h-5 w-5" />
+                  Calendario
+                </CardTitle>
+                <CardDescription>Clicca per vedere tutti i tuoi lavori</CardDescription>
+              </CardHeader>
+              <CardContent className="flex justify-center">
+                <Calendar
+                  mode="single"
+                  locale={it}
+                  className="rounded-md border scale-90"
+                  modifiers={{
+                    hasEvent: (date) => hasEvent(date),
+                  }}
+                  modifiersStyles={{
+                    hasEvent: {
+                      fontWeight: 'bold',
+                      backgroundColor: 'hsl(var(--primary) / 0.2)',
+                      color: 'hsl(var(--primary))',
+                    },
+                  }}
+                />
               </CardContent>
             </Card>
           </div>
