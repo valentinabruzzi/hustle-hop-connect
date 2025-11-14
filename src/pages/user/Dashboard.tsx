@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
+import { AskAI } from "@/components/AskAI";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useProfile } from "@/hooks/useProfile";
@@ -137,6 +138,11 @@ const Dashboard = () => {
                 </div>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Ask AI Section */}
+          <div className="mb-8">
+            <AskAI userType="dipendente" />
           </div>
 
           {/* Stats Grid */}
