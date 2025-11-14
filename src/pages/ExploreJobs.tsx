@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useJobs } from "@/hooks/useJobs";
+import { useApplications } from "@/hooks/useApplications";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { 
@@ -21,14 +24,44 @@ import {
 } from "lucide-react";
 
 const ExploreJobs = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { user } = useAuth();
   const [filters, setFilters] = useState({
     city: "",
     dateFrom: "",
     dateTo: "",
     role: "all"
   });
+  const [applyingJobId, setApplyingJobId] = useState<string | null>(null);
 
   const { data: jobs = [], isLoading } = useJobs(filters);
+  const { applications, applyToJob } = useApplications();
+
+  const handleApply = async (jobId: string) => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    
+    setApplyingJobId(jobId);
+    
+    try {
+      await applyToJob.mutateAsync(jobId);
+      toast({
+        title: "Candidatura inviata!",
+        description: "Riceverai una notifica quando l'azienda avrà esaminato il tuo profilo.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Errore",
+        description: error.message || "Non è stato possibile inviare la candidatura",
+        variant: "destructive",
+      });
+    } finally {
+      setApplyingJobId(null);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -195,9 +228,20 @@ const ExploreJobs = () => {
                           <span>{job.total_spots - (job.filled_spots || 0)} {job.total_spots - (job.filled_spots || 0) === 1 ? 'posto disponibile' : 'posti disponibili'}</span>
                         </div>
                       </CardContent>
-                      <CardFooter>
-                        <Button asChild className="w-full">
+                      <CardFooter className="flex gap-2">
+                        <Button asChild variant="outline" className="flex-1">
                           <Link to={`/jobs/${job.id}`}>Vedi Dettagli</Link>
+                        </Button>
+                        <Button 
+                          className="flex-1"
+                          disabled={
+                            applications?.some(app => app.job_id === job.id) || 
+                            applyingJobId === job.id ||
+                            (job.total_spots - (job.filled_spots || 0)) === 0
+                          }
+                          onClick={() => handleApply(job.id)}
+                        >
+                          {applyingJobId === job.id ? "Invio..." : applications?.some(app => app.job_id === job.id) ? "Candidato" : "Candidati"}
                         </Button>
                       </CardFooter>
                     </Card>
