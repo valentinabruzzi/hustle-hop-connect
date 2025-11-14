@@ -1,14 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useJobs } from '@/hooks/useJobs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useApplications } from '@/hooks/useApplications';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { Clock, Calendar } from 'lucide-react';
 
 interface InviteWorkerDialogProps {
@@ -20,22 +20,45 @@ interface InviteWorkerDialogProps {
 export function InviteWorkerDialog({ isOpen, onClose, workerId }: InviteWorkerDialogProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { createJob } = useJobs();
   const { createInvitation } = useApplications();
   
   const [requestType, setRequestType] = useState<'now' | 'book'>('now');
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    compensation: '',
-    startDate: '',
-    endDate: '',
-    startTime: '',
-    endTime: '',
-    city: '',
-    province: '',
-    companyName: '',
-  });
+  const [selectedJobId, setSelectedJobId] = useState<string>('');
+  const [startDate, setStartDate] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && user?.id) {
+      fetchJobs();
+    }
+  }, [isOpen, user?.id]);
+
+  const fetchJobs = async () => {
+    if (!user?.id) return;
+    
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('created_by', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setJobs(data || []);
+    } catch (error) {
+      console.error('Error fetching jobs:', error);
+      toast({
+        title: "Errore",
+        description: "Impossibile caricare i lavori",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,29 +72,27 @@ export function InviteWorkerDialog({ isOpen, onClose, workerId }: InviteWorkerDi
       return;
     }
 
-    try {
-      // Create the job
-      const jobData = {
-        title: formData.title,
-        description: formData.description,
-        compensation: formData.compensation,
-        start_date: formData.startDate,
-        end_date: formData.endDate,
-        duration: `${formData.startTime} - ${formData.endTime}`,
-        city: formData.city,
-        province: formData.province,
-        company_name: formData.companyName,
-        type: 'altro' as const,
-        urgent: requestType === 'now',
-        total_spots: 1,
-        created_by: user.id,
-      };
+    if (!selectedJobId) {
+      toast({
+        title: "Errore",
+        description: "Seleziona un lavoro",
+        variant: "destructive",
+      });
+      return;
+    }
 
-      const job = await createJob.mutateAsync(jobData);
-      
-      // Create the invitation
+    if (requestType === 'book' && (!startDate || !startTime)) {
+      toast({
+        title: "Errore",
+        description: "Inserisci data e ora di inizio",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
       await createInvitation.mutateAsync({
-        job_id: job.id,
+        job_id: selectedJobId,
         user_id: workerId,
       });
 
@@ -81,20 +102,9 @@ export function InviteWorkerDialog({ isOpen, onClose, workerId }: InviteWorkerDi
       });
 
       onClose();
-      
-      // Reset form
-      setFormData({
-        title: '',
-        description: '',
-        compensation: '',
-        startDate: '',
-        endDate: '',
-        startTime: '',
-        endTime: '',
-        city: '',
-        province: '',
-        companyName: '',
-      });
+      setSelectedJobId('');
+      setStartDate('');
+      setStartTime('');
       setRequestType('now');
     } catch (error) {
       console.error('Error creating invitation:', error);
@@ -143,123 +153,56 @@ export function InviteWorkerDialog({ isOpen, onClose, workerId }: InviteWorkerDi
             </RadioGroup>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <Label htmlFor="title">Titolo Lavoro *</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="Es: Hostess per evento"
-                required
-              />
-            </div>
-
-            <div className="col-span-2">
-              <Label htmlFor="description">Descrizione *</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Descrivi i dettagli del lavoro..."
-                rows={4}
-                required
-              />
-            </div>
-
+          <div className="space-y-4">
             <div>
-              <Label htmlFor="companyName">Nome Azienda *</Label>
-              <Input
-                id="companyName"
-                value={formData.companyName}
-                onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                required
-              />
+              <Label htmlFor="job">Seleziona Lavoro *</Label>
+              <Select value={selectedJobId} onValueChange={setSelectedJobId} disabled={isLoading}>
+                <SelectTrigger>
+                  <SelectValue placeholder={isLoading ? "Caricamento..." : "Scegli un lavoro"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {jobs.map((job) => (
+                    <SelectItem key={job.id} value={job.id}>
+                      {job.title} - {job.city} ({new Date(job.start_date).toLocaleDateString('it-IT')})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <div>
-              <Label htmlFor="compensation">Compenso *</Label>
-              <Input
-                id="compensation"
-                value={formData.compensation}
-                onChange={(e) => setFormData({ ...formData, compensation: e.target.value })}
-                placeholder="Es: €100/giorno"
-                required
-              />
-            </div>
+            {requestType === 'book' && (
+              <>
+                <div>
+                  <Label htmlFor="startDate">Data Inizio *</Label>
+                  <Input
+                    id="startDate"
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    required
+                  />
+                </div>
 
-            <div>
-              <Label htmlFor="city">Città *</Label>
-              <Input
-                id="city"
-                value={formData.city}
-                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="province">Provincia *</Label>
-              <Input
-                id="province"
-                value={formData.province}
-                onChange={(e) => setFormData({ ...formData, province: e.target.value })}
-                placeholder="Es: MI"
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="startDate">Data Inizio *</Label>
-              <Input
-                id="startDate"
-                type="date"
-                value={formData.startDate}
-                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="endDate">Data Fine *</Label>
-              <Input
-                id="endDate"
-                type="date"
-                value={formData.endDate}
-                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="startTime">Orario Inizio *</Label>
-              <Input
-                id="startTime"
-                type="time"
-                value={formData.startTime}
-                onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="endTime">Orario Fine *</Label>
-              <Input
-                id="endTime"
-                type="time"
-                value={formData.endTime}
-                onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                required
-              />
-            </div>
+                <div>
+                  <Label htmlFor="startTime">Ora Inizio *</Label>
+                  <Input
+                    id="startTime"
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    required
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           <div className="flex gap-3">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">
               Annulla
             </Button>
-            <Button type="submit" className="flex-1" disabled={createJob.isPending || createInvitation.isPending}>
-              {createJob.isPending || createInvitation.isPending ? 'Invio...' : 'Invia Invito'}
+            <Button type="submit" className="flex-1" disabled={createInvitation.isPending || isLoading}>
+              {createInvitation.isPending ? 'Invio...' : 'Invia Invito'}
             </Button>
           </div>
         </form>
