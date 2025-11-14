@@ -57,6 +57,25 @@ export const useApplications = (status?: string) => {
     },
   });
 
+  const createInvitation = useMutation({
+    mutationFn: async ({ job_id, user_id }: { job_id: string; user_id: string }) => {
+      const { error } = await supabase
+        .from('applications')
+        .insert({
+          job_id,
+          user_id,
+          status: 'pending',
+          is_invitation: true,
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['applications'] });
+      queryClient.invalidateQueries({ queryKey: ['company-applications'] });
+    },
+  });
+
   const updateApplication = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: 'pending' | 'accepted' | 'rejected' | 'confirmed' | 'completed' }) => {
       const { error } = await supabase
@@ -71,5 +90,5 @@ export const useApplications = (status?: string) => {
     },
   });
 
-  return { applications, isLoading, applyToJob, updateApplication };
+  return { applications, isLoading, applyToJob, createInvitation, updateApplication };
 };

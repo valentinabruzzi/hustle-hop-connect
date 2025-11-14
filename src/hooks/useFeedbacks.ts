@@ -1,9 +1,10 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const useFeedbacks = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const { data: feedbacks = [], isLoading } = useQuery({
     queryKey: ['feedbacks', user?.id],
@@ -38,5 +39,31 @@ export const useFeedbacks = () => {
       : '0'
   }));
 
-  return { feedbacks, isLoading, averageRating, ratingDistribution, totalReviews: feedbacks.length };
+  const createFeedback = useMutation({
+    mutationFn: async ({ user_id, job_id, rating, comment }: { 
+      user_id: string; 
+      job_id: string; 
+      rating: number; 
+      comment?: string;
+    }) => {
+      if (!user?.id) throw new Error('No user');
+      
+      const { error } = await supabase
+        .from('feedbacks')
+        .insert({
+          user_id,
+          company_id: user.id,
+          job_id,
+          rating,
+          comment,
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['feedbacks'] });
+    },
+  });
+
+  return { feedbacks, isLoading, averageRating, ratingDistribution, totalReviews: feedbacks.length, createFeedback };
 };
