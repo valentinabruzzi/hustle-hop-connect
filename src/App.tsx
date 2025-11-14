@@ -23,6 +23,7 @@ import Privacy from "./pages/Privacy";
 import Cookie from "./pages/Cookie";
 import Terms from "./pages/Terms";
 import ExploreJobs from "./pages/ExploreJobs";
+import ExploreProfiles from "./pages/ExploreProfiles";
 import JobDetail from "./pages/JobDetail";
 import PublicProfile from "./pages/PublicProfile";
 import Dashboard from "./pages/user/Dashboard";
@@ -81,7 +82,10 @@ const App = () => (
             <Route path="/cookie" element={<Cookie />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/esplora-lavori" element={<ExploreJobs />} />
+            <Route path="/esplora-profili" element={<ProtectedRoute><ExploreProfiles /></ProtectedRoute>} />
             <Route path="/lavoro/:id" element={<JobDetail />} />
+            <Route path="/jobs/:id" element={<JobDetail />} />
+            <Route path="/profilo/:id" element={<PublicProfile />} />
             <Route path="/dipendente-milano/:id" element={<PublicProfile />} />
             <Route path="/user/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/user/dashboard/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
