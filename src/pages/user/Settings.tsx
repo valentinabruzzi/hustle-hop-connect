@@ -20,7 +20,8 @@ import {
   FileSignature,
   UserX,
   CreditCard,
-  ChevronRight
+  ChevronRight,
+  RefreshCw
 } from "lucide-react";
 
 const Settings = () => {
@@ -126,6 +127,12 @@ const Settings = () => {
     {
       title: "Preferenze",
       items: [
+        {
+          icon: RefreshCw,
+          title: "Cambia Tipo di Profilo",
+          description: "Passa da lavoratore ad azienda",
+          link: "/user/settings/switch-role"
+        },
         {
           icon: Bell,
           title: "Notifiche",
