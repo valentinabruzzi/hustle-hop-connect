@@ -634,7 +634,45 @@ export type Database = {
         | "rejected"
         | "confirmed"
         | "completed"
-      job_type: "hostess" | "steward" | "promoter"
+      job_type:
+        | "hostess"
+        | "steward"
+        | "promoter"
+        | "modella"
+        | "modello"
+        | "attore"
+        | "attrice"
+        | "cantante"
+        | "musicista"
+        | "ballerino"
+        | "ballerina"
+        | "fotografo"
+        | "videomaker"
+        | "grafico"
+        | "web_designer"
+        | "programmatore"
+        | "social_media_manager"
+        | "copywriter"
+        | "traduttore"
+        | "cameriere"
+        | "barista"
+        | "cuoco"
+        | "receptionist"
+        | "addetto_vendite"
+        | "magazziniere"
+        | "autista"
+        | "rider"
+        | "baby_sitter"
+        | "dog_sitter"
+        | "personal_trainer"
+        | "estetista"
+        | "parrucchiere"
+        | "make_up_artist"
+        | "interprete"
+        | "guida_turistica"
+        | "animatore"
+        | "dj"
+        | "altro"
       notification_type:
         | "job_offer"
         | "application_status"
@@ -776,7 +814,46 @@ export const Constants = {
         "confirmed",
         "completed",
       ],
-      job_type: ["hostess", "steward", "promoter"],
+      job_type: [
+        "hostess",
+        "steward",
+        "promoter",
+        "modella",
+        "modello",
+        "attore",
+        "attrice",
+        "cantante",
+        "musicista",
+        "ballerino",
+        "ballerina",
+        "fotografo",
+        "videomaker",
+        "grafico",
+        "web_designer",
+        "programmatore",
+        "social_media_manager",
+        "copywriter",
+        "traduttore",
+        "cameriere",
+        "barista",
+        "cuoco",
+        "receptionist",
+        "addetto_vendite",
+        "magazziniere",
+        "autista",
+        "rider",
+        "baby_sitter",
+        "dog_sitter",
+        "personal_trainer",
+        "estetista",
+        "parrucchiere",
+        "make_up_artist",
+        "interprete",
+        "guida_turistica",
+        "animatore",
+        "dj",
+        "altro",
+      ],
       notification_type: [
         "job_offer",
         "application_status",

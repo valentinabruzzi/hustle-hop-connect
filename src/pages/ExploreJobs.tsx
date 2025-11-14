@@ -8,6 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { useJobs } from "@/hooks/useJobs";
+import { format } from "date-fns";
+import { it } from "date-fns/locale";
 import { 
   MapPin, 
   Calendar, 
@@ -22,107 +25,10 @@ const ExploreJobs = () => {
     city: "",
     dateFrom: "",
     dateTo: "",
-    role: "all"
+    role: ""
   });
 
-  const jobs = [
-    {
-      id: 1,
-      title: "Hostess per Fashion Week Milano",
-      company: "Fashion Events SRL",
-      type: "Hostess",
-      city: "Milano",
-      province: "MI",
-      date: "15 Dic 2024",
-      dateEnd: "18 Dic 2024",
-      duration: "4 giorni",
-      compensation: "€150/giorno",
-      urgent: true,
-      spots: 3,
-      description: "Cerchiamo hostess professionali per evento fashion di alto livello"
-    },
-    {
-      id: 2,
-      title: "Promoter Evento Sportivo",
-      company: "Sport Marketing Italia",
-      type: "Promoter",
-      city: "Roma",
-      province: "RM",
-      date: "20 Dic 2024",
-      dateEnd: "20 Dic 2024",
-      duration: "1 giorno",
-      compensation: "€120/giorno",
-      urgent: false,
-      spots: 5,
-      description: "Promozione brand sportivo durante evento calcistico"
-    },
-    {
-      id: 3,
-      title: "Steward per Concerto Arena",
-      company: "Live Nation Events",
-      type: "Steward",
-      city: "Milano",
-      province: "MI",
-      date: "18 Dic 2024",
-      dateEnd: "18 Dic 2024",
-      duration: "Serale",
-      compensation: "In descrizione",
-      urgent: false,
-      spots: 10,
-      description: "Assistenza e gestione flussi pubblico per concerto"
-    },
-    {
-      id: 4,
-      title: "URGENTE: Hostess Fiera Tecnologia",
-      company: "Tech Expo Group",
-      type: "Hostess",
-      city: "Milano",
-      province: "MI",
-      date: "14 Dic 2024",
-      dateEnd: "16 Dic 2024",
-      duration: "3 giorni",
-      compensation: "€140/giorno",
-      urgent: true,
-      spots: 2,
-      description: "Stand aziendale presso fiera tecnologia - serve inglese fluente"
-    },
-    {
-      id: 5,
-      title: "Promoter Centro Commerciale",
-      company: "Retail Promo",
-      type: "Promoter",
-      city: "Torino",
-      province: "TO",
-      date: "22 Dic 2024",
-      dateEnd: "24 Dic 2024",
-      duration: "3 giorni",
-      compensation: "€100/giorno",
-      urgent: false,
-      spots: 4,
-      description: "Promozione prodotti natalizi in centro commerciale"
-    },
-    {
-      id: 6,
-      title: "Steward Evento Aziendale",
-      company: "Corporate Events Pro",
-      type: "Steward",
-      city: "Milano",
-      province: "MI",
-      date: "19 Dic 2024",
-      dateEnd: "19 Dic 2024",
-      duration: "Serale",
-      compensation: "€130/giorno",
-      urgent: false,
-      spots: 6,
-      description: "Cena di gala aziendale - richiesta eleganza"
-    },
-  ];
-
-  const filteredJobs = jobs.filter(job => {
-    if (filters.city && !job.city.toLowerCase().includes(filters.city.toLowerCase())) return false;
-    if (filters.role !== "all" && job.type !== filters.role) return false;
-    return true;
-  });
+  const { data: jobs = [], isLoading } = useJobs(filters);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -132,9 +38,9 @@ const ExploreJobs = () => {
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Esplora Lavori</h1>
+            <h1 className="text-4xl font-bold mb-2">Esplora Opportunità</h1>
             <p className="text-muted-foreground">
-              Trova l'opportunità perfetta per te • {filteredJobs.length} lavori disponibili
+              {isLoading ? 'Caricamento...' : `${jobs.length} ${jobs.length === 1 ? 'lavoro disponibile' : 'lavori disponibili'}`}
             </p>
           </div>
 
@@ -161,15 +67,27 @@ const ExploreJobs = () => {
 
                     <div className="space-y-2">
                       <Label htmlFor="role">Ruolo</Label>
-                      <Select value={filters.role} onValueChange={(value) => setFilters({ ...filters, role: value })}>
-                        <SelectTrigger id="role">
-                          <SelectValue />
+                      <Select value={filters.role} onValueChange={(value) => setFilters({...filters, role: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Tutti i ruoli" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">Tutti i ruoli</SelectItem>
-                          <SelectItem value="Hostess">Hostess</SelectItem>
-                          <SelectItem value="Steward">Steward</SelectItem>
-                          <SelectItem value="Promoter">Promoter</SelectItem>
+                          <SelectItem value="">Tutti i ruoli</SelectItem>
+                          <SelectItem value="hostess">Hostess</SelectItem>
+                          <SelectItem value="steward">Steward</SelectItem>
+                          <SelectItem value="promoter">Promoter</SelectItem>
+                          <SelectItem value="modella">Modella</SelectItem>
+                          <SelectItem value="modello">Modello</SelectItem>
+                          <SelectItem value="attore">Attore/Attrice</SelectItem>
+                          <SelectItem value="cantante">Cantante</SelectItem>
+                          <SelectItem value="musicista">Musicista</SelectItem>
+                          <SelectItem value="ballerino">Ballerino/a</SelectItem>
+                          <SelectItem value="fotografo">Fotografo</SelectItem>
+                          <SelectItem value="videomaker">Videomaker</SelectItem>
+                          <SelectItem value="grafico">Grafico</SelectItem>
+                          <SelectItem value="programmatore">Programmatore</SelectItem>
+                          <SelectItem value="cameriere">Cameriere</SelectItem>
+                          <SelectItem value="altro">Altro</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -197,98 +115,95 @@ const ExploreJobs = () => {
                     <Button 
                       variant="outline" 
                       className="w-full"
-                      onClick={() => setFilters({ city: "", dateFrom: "", dateTo: "", role: "all" })}
+                      onClick={() => setFilters({ city: "", dateFrom: "", dateTo: "", role: "" })}
                     >
-                      Resetta Filtri
+                      Reset Filtri
                     </Button>
                   </div>
                 </CardContent>
               </Card>
             </aside>
 
-            {/* Jobs Grid */}
-            <div className="lg:col-span-3 space-y-4">
-              {filteredJobs.map((job) => (
-                <Card key={job.id} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <div className="flex items-start gap-3 mb-2">
-                          <div className="mt-1">
-                            <Briefcase className="h-5 w-5 text-primary" />
-                          </div>
+            {/* Main Content */}
+            <div className="lg:col-span-3">
+              {/* Jobs Grid */}
+              <div className="space-y-4">
+                {isLoading ? (
+                  <Card className="p-12 text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                    <p className="text-muted-foreground mt-4">Caricamento lavori...</p>
+                  </Card>
+                ) : jobs.length === 0 ? (
+                  <Card className="p-12 text-center">
+                    <div className="flex flex-col items-center gap-4">
+                      <Briefcase className="h-12 w-12 text-muted-foreground" />
+                      <div>
+                        <h3 className="text-lg font-semibold mb-2">Nessun lavoro trovato</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Prova a modificare i filtri di ricerca
+                        </p>
+                        <Button 
+                          variant="outline"
+                          onClick={() => setFilters({ city: "", dateFrom: "", dateTo: "", role: "" })}
+                        >
+                          Reset Filtri
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ) : (
+                  jobs.map((job) => (
+                    <Card key={job.id} className="hover:shadow-lg transition-shadow">
+                      <CardContent className="pt-6">
+                        <div className="flex justify-between items-start mb-4">
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <div className="flex items-center gap-2 mb-2">
                               <h3 className="text-xl font-semibold">{job.title}</h3>
                               {job.urgent && (
-                                <Badge variant="destructive" className="text-xs">URGENTE</Badge>
+                                <Badge variant="destructive" className="animate-pulse">
+                                  URGENTE
+                                </Badge>
                               )}
                             </div>
-                            <p className="text-muted-foreground">{job.company}</p>
+                            <p className="text-muted-foreground">{job.company_name}</p>
+                          </div>
+                          <Badge variant="secondary">{job.type}</Badge>
+                        </div>
+
+                        <p className="text-sm text-muted-foreground mb-4">{job.description}</p>
+
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                          <div className="flex items-center gap-2 text-sm">
+                            <MapPin className="h-4 w-4 text-muted-foreground" />
+                            <span>{job.city}, {job.province}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span>{format(new Date(job.start_date), 'd MMM yyyy', { locale: it })} - {format(new Date(job.end_date), 'd MMM yyyy', { locale: it })}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <span>{job.duration}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Euro className="h-4 w-4 text-muted-foreground" />
+                            <span>{job.compensation}</span>
                           </div>
                         </div>
-                      </div>
-                    </div>
 
-                    <p className="text-sm text-muted-foreground mb-4">
-                      {job.description}
-                    </p>
-
-                    <div className="grid sm:grid-cols-2 gap-3 mb-4">
-                      <div className="flex items-center gap-2 text-sm">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span>{job.city}, {job.province}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span>{job.date}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span>{job.duration}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Euro className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{job.compensation}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <Badge variant="outline">{job.type}</Badge>
-                        <span className="text-sm text-muted-foreground">
-                          {job.spots} {job.spots === 1 ? 'posto' : 'posti'}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="bg-muted/50 p-4">
-                    <Button asChild className="w-full bg-gradient-primary">
-                      <Link to={`/lavoro/${job.id}`}>
-                        Vedi Dettagli e Candidati
-                      </Link>
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-
-              {filteredJobs.length === 0 && (
-                <Card>
-                  <CardContent className="p-12 text-center">
-                    <Briefcase className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-                    <h3 className="text-xl font-semibold mb-2">Nessun lavoro trovato</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Prova a modificare i filtri di ricerca
-                    </p>
-                    <Button 
-                      variant="outline"
-                      onClick={() => setFilters({ city: "", dateFrom: "", dateTo: "", role: "all" })}
-                    >
-                      Resetta Filtri
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                          <span>{job.total_spots - (job.filled_spots || 0)} {job.total_spots - (job.filled_spots || 0) === 1 ? 'posto disponibile' : 'posti disponibili'}</span>
+                        </div>
+                      </CardContent>
+                      <CardFooter>
+                        <Button asChild className="w-full">
+                          <Link to={`/jobs/${job.id}`}>Vedi Dettagli</Link>
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </div>

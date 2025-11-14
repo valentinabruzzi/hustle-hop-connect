@@ -48,6 +48,7 @@ import Documents from "./pages/user/settings/Documents";
 import Contracts from "./pages/user/settings/Contracts";
 import DisableProfile from "./pages/user/settings/DisableProfile";
 import PaymentInfo from "./pages/user/settings/PaymentInfo";
+import CreateJob from "./pages/company/CreateJob";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -103,6 +104,7 @@ const App = () => (
             <Route path="/user/settings/edit-contracts" element={<ProtectedRoute><Contracts /></ProtectedRoute>} />
             <Route path="/user/settings/disable-profile" element={<ProtectedRoute><DisableProfile /></ProtectedRoute>} />
             <Route path="/user/settings/payment-info" element={<ProtectedRoute><PaymentInfo /></ProtectedRoute>} />
+            <Route path="/company/create-job" element={<ProtectedRoute><CreateJob /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
