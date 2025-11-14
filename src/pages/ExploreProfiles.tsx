@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useProfiles } from "@/hooks/useProfiles";
+import { InviteWorkerDialog } from "@/components/InviteWorkerDialog";
 import { 
   MapPin, 
   Star,
@@ -16,7 +17,8 @@ import {
   Filter,
   Users,
   Plane,
-  Award
+  Award,
+  Send
 } from "lucide-react";
 
 const ExploreProfiles = () => {
@@ -25,6 +27,7 @@ const ExploreProfiles = () => {
     minRating: 0,
     availableForTravel: undefined as boolean | undefined
   });
+  const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
 
   const { data: profiles = [], isLoading } = useProfiles(filters);
 
@@ -227,9 +230,16 @@ const ExploreProfiles = () => {
                           )}
                         </div>
                       </CardContent>
-                      <CardFooter>
-                        <Button asChild className="w-full">
+                      <CardFooter className="flex gap-2">
+                        <Button asChild variant="outline" className="flex-1">
                           <Link to={`/profilo/${profile.id}`}>Vedi Profilo</Link>
+                        </Button>
+                        <Button 
+                          onClick={() => setSelectedProfile(profile.id)}
+                          className="flex-1"
+                        >
+                          <Send className="w-4 h-4 mr-2" />
+                          Invita
                         </Button>
                       </CardFooter>
                     </Card>
@@ -242,6 +252,12 @@ const ExploreProfiles = () => {
       </div>
 
       <Footer />
+      
+      <InviteWorkerDialog
+        isOpen={!!selectedProfile}
+        onClose={() => setSelectedProfile(null)}
+        workerId={selectedProfile || ''}
+      />
     </div>
   );
 };
