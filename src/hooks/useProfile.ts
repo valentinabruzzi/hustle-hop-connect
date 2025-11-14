@@ -15,7 +15,7 @@ export const useProfile = () => {
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       return data;
@@ -59,11 +59,11 @@ export const usePublicProfile = (userId: string | undefined) => {
         `)
         .eq('id', userId)
         .eq('profile_active', true)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       return data;
     },
-    enabled: !!userId,
+    enabled: !!userId && userId !== 'undefined',
   });
 };
