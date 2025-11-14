@@ -19,7 +19,8 @@ import {
   Star,
   Bell,
   User,
-  Settings
+  Settings,
+  Calendar as CalendarIcon
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -74,6 +75,12 @@ const Dashboard = () => {
                 </p>
               </div>
               <div className="flex gap-2">
+                <Button variant="outline" asChild size="sm">
+                  <Link to="/user/calendar">
+                    <CalendarIcon className="h-4 w-4 mr-2" />
+                    Calendario
+                  </Link>
+                </Button>
                 <Button variant="outline" asChild size="sm">
                   <Link to="/user/settings">
                     <Settings className="h-4 w-4 mr-2" />
