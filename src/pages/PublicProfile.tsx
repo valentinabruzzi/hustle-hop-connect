@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { usePublicProfile } from "@/hooks/useProfile";
 import { 
   MapPin,
   Star,
@@ -24,15 +25,18 @@ import {
   Languages,
   Award,
   Mail,
-  Phone,
   Instagram,
-  Linkedin
+  Linkedin,
+  Loader2,
+  Car,
+  Plane
 } from "lucide-react";
 import { useState } from "react";
 
 const PublicProfile = () => {
   const { id } = useParams();
   const { toast } = useToast();
+  const { data: profile, isLoading } = usePublicProfile(id);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [inviteForm, setInviteForm] = useState({
@@ -56,7 +60,7 @@ const PublicProfile = () => {
     e.preventDefault();
     toast({
       title: "Invito inviato!",
-      description: `Invito per ${profile.firstName} inviato con successo.`,
+      description: `Invito per ${profile?.first_name} inviato con successo.`,
     });
     setInviteDialogOpen(false);
     setInviteForm({ job: "", message: "" });
@@ -66,72 +70,47 @@ const PublicProfile = () => {
     e.preventDefault();
     toast({
       title: "Messaggio inviato!",
-      description: `Il tuo messaggio è stato inviato a ${profile.firstName}.`,
+      description: `Il tuo messaggio è stato inviato a ${profile?.first_name}.`,
     });
     setContactDialogOpen(false);
     setContactForm({ name: "", email: "", message: "" });
   };
 
-  // Mock profile data
-  const profile = {
-    id: id || "mario-rossi",
-    firstName: "Mario",
-    lastName: "Rossi",
-    city: "Milano",
-    province: "MI",
-    role: "Hostess & Steward",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
-    gallery: [
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&h=600&fit=crop",
-    ],
-    bio: "Professionista con 5 anni di esperienza nel settore eventi e hospitality. Specializzato in eventi corporate, fashion e sportivi. Appassionato di comunicazione e relazioni con il pubblico.",
-    rating: 4.8,
-    reviewsCount: 24,
-    completedJobs: 56,
-    physicalInfo: {
-      height: "178 cm",
-      size: "M",
-      shoeSize: "42",
-      eyeColor: "Castani",
-      hairColor: "Castano scuro"
-    },
-    languages: [
-      { name: "Italiano", level: "Madrelingua" },
-      { name: "Inglese", level: "C1 - Fluente" },
-      { name: "Francese", level: "B1 - Intermedio" }
-    ],
-    experiences: [
-      {
-        title: "Hostess Fashion Week Milano",
-        company: "Fashion Events SRL",
-        period: "2024",
-        description: "Gestione accoglienza ospiti VIP e assistenza durante le sfilate"
-      },
-      {
-        title: "Steward Eventi Sportivi",
-        company: "Sport Events Italia",
-        period: "2023-2024",
-        description: "Coordinamento flussi pubblico in grandi eventi sportivi"
-      },
-      {
-        title: "Promoter Brand Luxury",
-        company: "Luxury Marketing",
-        period: "2022-2023",
-        description: "Promozione brand di lusso in centri commerciali ed eventi"
-      }
-    ],
-    certifications: [
-      "Certificazione HACCP",
-      "Primo Soccorso",
-      "Patente B"
-    ],
-    socialMedia: {
-      instagram: "@mario.rossi",
-      linkedin: "mario-rossi-events"
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-2">Profilo non trovato</h2>
+            <p className="text-muted-foreground mb-4">Il profilo richiesto non esiste o non è attivo.</p>
+            <Button asChild>
+              <Link to="/">Torna alla Home</Link>
+            </Button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  const profilePicture = profile.gallery_photos?.find(p => p.is_profile_picture)?.photo_url || 
+                         profile.avatar_url ||
+                         "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop";
+  
+  const galleryImages = profile.gallery_photos?.map(p => p.photo_url) || [];
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -146,8 +125,8 @@ const PublicProfile = () => {
                 <div className="flex flex-col md:flex-row gap-6">
                   <div className="flex-shrink-0">
                     <img 
-                      src={profile.avatar} 
-                      alt={`${profile.firstName} ${profile.lastName}`}
+                      src={profilePicture} 
+                      alt={`${profile.first_name} ${profile.last_name}`}
                       className="w-32 h-32 rounded-full object-cover border-4 border-background shadow-lg"
                     />
                   </div>
@@ -155,15 +134,17 @@ const PublicProfile = () => {
                     <div className="flex items-start justify-between mb-4">
                       <div>
                         <h1 className="text-3xl font-bold mb-2">
-                          {profile.firstName} {profile.lastName}
+                          {profile.first_name} {profile.last_name}
                         </h1>
-                        <div className="flex items-center gap-2 text-muted-foreground mb-3">
-                          <MapPin className="h-4 w-4" />
-                          <span>{profile.city}, {profile.province}</span>
-                        </div>
+                        {(profile.city || profile.province) && (
+                          <div className="flex items-center gap-2 text-muted-foreground mb-3">
+                            <MapPin className="h-4 w-4" />
+                            <span>{profile.city}{profile.province && `, ${profile.province}`}</span>
+                          </div>
+                        )}
                         <Badge variant="outline" className="text-sm">
                           <Briefcase className="h-3 w-3 mr-1" />
-                          {profile.role}
+                          Dipendente
                         </Badge>
                       </div>
                     </div>
@@ -171,20 +152,22 @@ const PublicProfile = () => {
                     <div className="flex items-center gap-6 mb-4">
                       <div className="flex items-center gap-2">
                         <Star className="h-5 w-5 fill-warning text-warning" />
-                        <span className="font-semibold text-lg">{profile.rating}</span>
+                        <span className="font-semibold text-lg">{profile.average_rating?.toFixed(1) || '0.0'}</span>
                         <span className="text-sm text-muted-foreground">
-                          ({profile.reviewsCount} recensioni)
+                          ({profile.total_reviews || 0} recensioni)
                         </span>
                       </div>
                       <div className="text-sm">
-                        <span className="font-semibold">{profile.completedJobs}</span>
+                        <span className="font-semibold">{profile.completed_jobs || 0}</span>
                         <span className="text-muted-foreground"> lavori completati</span>
                       </div>
                     </div>
 
-                    <p className="text-muted-foreground leading-relaxed">
-                      {profile.bio}
-                    </p>
+                    {profile.bio && (
+                      <p className="text-muted-foreground leading-relaxed">
+                        {profile.bio}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -199,7 +182,7 @@ const PublicProfile = () => {
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Invita {profile.firstName} per un Lavoro</DialogTitle>
+                        <DialogTitle>Invita {profile.first_name} per un Lavoro</DialogTitle>
                         <DialogDescription>
                           Seleziona un lavoro e invia un invito diretto a questo professionista
                         </DialogDescription>
@@ -213,7 +196,7 @@ const PublicProfile = () => {
                             required
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Scegli un lavoro..." />
+                              <SelectValue placeholder="Scegli un lavoro" />
                             </SelectTrigger>
                             <SelectContent>
                               {availableJobs.map((job) => (
@@ -225,13 +208,13 @@ const PublicProfile = () => {
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="invite-message">Messaggio (opzionale)</Label>
+                          <Label htmlFor="message">Messaggio</Label>
                           <Textarea
-                            id="invite-message"
-                            placeholder="Scrivi un messaggio personalizzato..."
+                            id="message"
                             value={inviteForm.message}
                             onChange={(e) => setInviteForm({ ...inviteForm, message: e.target.value })}
                             rows={4}
+                            placeholder="Scrivi un messaggio personalizzato..."
                           />
                         </div>
                         <Button type="submit" className="w-full bg-gradient-primary">
@@ -244,34 +227,32 @@ const PublicProfile = () => {
                   <Dialog open={contactDialogOpen} onOpenChange={setContactDialogOpen}>
                     <DialogTrigger asChild>
                       <Button variant="outline">
-                        <Phone className="h-4 w-4 mr-2" />
+                        <Mail className="h-4 w-4 mr-2" />
                         Contatta
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Contatta {profile.firstName}</DialogTitle>
+                        <DialogTitle>Contatta {profile.first_name}</DialogTitle>
                         <DialogDescription>
                           Invia un messaggio diretto a questo professionista
                         </DialogDescription>
                       </DialogHeader>
                       <form onSubmit={handleContact} className="space-y-4">
                         <div className="space-y-2">
-                          <Label htmlFor="contact-name">Nome</Label>
+                          <Label htmlFor="name">Il tuo nome</Label>
                           <Input
-                            id="contact-name"
-                            placeholder="Il tuo nome"
+                            id="name"
                             value={contactForm.name}
                             onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
                             required
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="contact-email">Email</Label>
+                          <Label htmlFor="email">La tua email</Label>
                           <Input
-                            id="contact-email"
+                            id="email"
                             type="email"
-                            placeholder="tua@email.it"
                             value={contactForm.email}
                             onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
                             required
@@ -281,11 +262,10 @@ const PublicProfile = () => {
                           <Label htmlFor="contact-message">Messaggio</Label>
                           <Textarea
                             id="contact-message"
-                            placeholder="Scrivi il tuo messaggio..."
                             value={contactForm.message}
                             onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                            required
                             rows={4}
+                            required
                           />
                         </div>
                         <Button type="submit" className="w-full bg-gradient-primary">
@@ -298,150 +278,213 @@ const PublicProfile = () => {
               </CardContent>
             </Card>
 
-            <div className="grid md:grid-cols-3 gap-6">
-              {/* Main Content */}
-              <div className="md:col-span-2 space-y-6">
-                {/* Photo Gallery */}
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-semibold mb-4">Galleria Foto</h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                      {profile.gallery.map((photo, index) => (
-                        <div 
-                          key={index}
-                          className="aspect-[4/3] rounded-lg overflow-hidden hover:opacity-90 transition-opacity cursor-pointer"
-                        >
-                          <img 
-                            src={photo} 
-                            alt={`Foto ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+            {/* Photo Gallery */}
+            {galleryImages.length > 0 && (
+              <Card className="mb-6">
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-bold mb-4">Gallery Foto</h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {galleryImages.map((photo, idx) => (
+                      <img 
+                        key={idx}
+                        src={photo} 
+                        alt={`Foto ${idx + 1}`}
+                        className="w-full aspect-square object-cover rounded-lg"
+                      />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-                {/* Experiences */}
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Physical Info */}
+              {(profile.height || profile.weight || profile.size || profile.shoe_size || profile.eye_color || profile.hair_color) && (
                 <Card>
                   <CardContent className="p-6">
-                    <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                      <Briefcase className="h-5 w-5 text-primary" />
-                      Esperienze Principali
-                    </h3>
-                    <div className="space-y-4">
-                      {profile.experiences.map((exp, index) => (
-                        <div key={index} className="border-l-2 border-primary pl-4">
-                          <h4 className="font-semibold">{exp.title}</h4>
-                          <p className="text-sm text-muted-foreground">{exp.company}</p>
-                          <p className="text-sm text-muted-foreground mb-2">{exp.period}</p>
-                          <p className="text-sm">{exp.description}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Languages */}
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                      <Languages className="h-5 w-5 text-primary" />
-                      Lingue
-                    </h3>
+                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                      <Briefcase className="h-5 w-5" />
+                      Caratteristiche Fisiche
+                    </h2>
                     <div className="space-y-3">
-                      {profile.languages.map((lang, index) => (
-                        <div key={index} className="flex items-center justify-between">
-                          <span className="font-medium">{lang.name}</span>
-                          <Badge variant="outline">{lang.level}</Badge>
+                      {profile.height && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Altezza</span>
+                          <span className="font-medium">{profile.height} cm</span>
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Sidebar */}
-              <div className="space-y-6">
-                {/* Physical Info */}
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="font-semibold mb-4">Dati Fisici</h3>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Altezza:</span>
-                        <span className="font-medium">{profile.physicalInfo.height}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Taglia:</span>
-                        <span className="font-medium">{profile.physicalInfo.size}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Scarpe:</span>
-                        <span className="font-medium">{profile.physicalInfo.shoeSize}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Occhi:</span>
-                        <span className="font-medium">{profile.physicalInfo.eyeColor}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Capelli:</span>
-                        <span className="font-medium">{profile.physicalInfo.hairColor}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Certifications */}
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="font-semibold mb-4 flex items-center gap-2">
-                      <Award className="h-5 w-5 text-primary" />
-                      Certificazioni
-                    </h3>
-                    <div className="space-y-2">
-                      {profile.certifications.map((cert, index) => (
-                        <div key={index} className="flex items-start gap-2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-success mt-2"></div>
-                          <span className="text-sm">{cert}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Social Media */}
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="font-semibold mb-4">Social Media</h3>
-                    <div className="space-y-3">
-                      {profile.socialMedia.instagram && (
-                        <a 
-                          href={`https://instagram.com/${profile.socialMedia.instagram.replace('@', '')}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
-                        >
-                          <Instagram className="h-4 w-4" />
-                          <span>{profile.socialMedia.instagram}</span>
-                        </a>
                       )}
-                      {profile.socialMedia.linkedin && (
-                        <a 
-                          href={`https://linkedin.com/in/${profile.socialMedia.linkedin}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
-                        >
-                          <Linkedin className="h-4 w-4" />
-                          <span>{profile.socialMedia.linkedin}</span>
-                        </a>
+                      {profile.weight && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Peso</span>
+                          <span className="font-medium">{profile.weight} kg</span>
+                        </div>
+                      )}
+                      {profile.size && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Taglia</span>
+                          <span className="font-medium">{profile.size}</span>
+                        </div>
+                      )}
+                      {profile.shoe_size && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Numero Scarpe</span>
+                          <span className="font-medium">{profile.shoe_size}</span>
+                        </div>
+                      )}
+                      {profile.eye_color && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Colore Occhi</span>
+                          <span className="font-medium">{profile.eye_color}</span>
+                        </div>
+                      )}
+                      {profile.hair_color && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Colore Capelli</span>
+                          <span className="font-medium">{profile.hair_color}</span>
+                        </div>
+                      )}
+                      {profile.hair_length && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Lunghezza Capelli</span>
+                          <span className="font-medium">{profile.hair_length}</span>
+                        </div>
                       )}
                     </div>
                   </CardContent>
                 </Card>
-              </div>
+              )}
+
+              {/* Additional Info */}
+              <Card>
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-bold mb-4">Informazioni Aggiuntive</h2>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Car className="h-5 w-5 text-muted-foreground" />
+                      <span>{profile.has_driving_license ? 'Patente B' : 'Nessuna patente'}</span>
+                    </div>
+                    {profile.has_own_car && (
+                      <div className="flex items-center gap-2">
+                        <Car className="h-5 w-5 text-muted-foreground" />
+                        <span>Auto propria</span>
+                      </div>
+                    )}
+                    {profile.available_for_travel && (
+                      <div className="flex items-center gap-2">
+                        <Plane className="h-5 w-5 text-muted-foreground" />
+                        <span>Disponibile per trasferte</span>
+                      </div>
+                    )}
+                    {profile.tattoos && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">Tatuaggi</span>
+                      </div>
+                    )}
+                    {profile.piercings && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">Piercing</span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
+
+            {/* Languages */}
+            {profile.languages && profile.languages.length > 0 && (
+              <Card className="mt-6">
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <Languages className="h-5 w-5" />
+                    Lingue
+                  </h2>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {profile.languages.map((lang: any, idx: number) => (
+                      <div key={idx} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                        <span className="font-medium">{lang.name}</span>
+                        <Badge variant="secondary">{lang.level}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Experiences */}
+            {profile.experiences && profile.experiences.length > 0 && (
+              <Card className="mt-6">
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <Briefcase className="h-5 w-5" />
+                    Esperienze Lavorative
+                  </h2>
+                  <div className="space-y-6">
+                    {profile.experiences.map((exp: any, idx: number) => (
+                      <div key={idx} className="border-l-2 border-primary pl-4">
+                        <h3 className="font-semibold text-lg">{exp.title}</h3>
+                        <p className="text-primary mb-1">{exp.company}</p>
+                        <p className="text-sm text-muted-foreground mb-2">{exp.period}</p>
+                        {exp.description && (
+                          <p className="text-sm text-muted-foreground">{exp.description}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Certifications */}
+            {profile.certifications && profile.certifications.length > 0 && (
+              <Card className="mt-6">
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <Award className="h-5 w-5" />
+                    Certificazioni
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.certifications.map((cert: any, idx: number) => (
+                      <Badge key={idx} variant="outline" className="text-sm">
+                        {cert.name}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Social Media */}
+            {(profile.instagram || profile.linkedin || profile.facebook || profile.tiktok) && (
+              <Card className="mt-6">
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-bold mb-4">Social Media</h2>
+                  <div className="flex gap-4">
+                    {profile.instagram && (
+                      <a 
+                        href={`https://instagram.com/${profile.instagram.replace('@', '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <Instagram className="h-5 w-5" />
+                        <span>{profile.instagram}</span>
+                      </a>
+                    )}
+                    {profile.linkedin && (
+                      <a 
+                        href={`https://linkedin.com/in/${profile.linkedin}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <Linkedin className="h-5 w-5" />
+                        <span>{profile.linkedin}</span>
+                      </a>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
