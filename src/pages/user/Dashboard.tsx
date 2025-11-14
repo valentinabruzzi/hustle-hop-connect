@@ -4,6 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { useProfile } from "@/hooks/useProfile";
+import { useApplications } from "@/hooks/useApplications";
+import { useNotifications } from "@/hooks/useNotifications";
 import { 
   Briefcase, 
   Send, 
@@ -17,19 +20,29 @@ import {
 } from "lucide-react";
 
 const Dashboard = () => {
-  // Mock data
+  const { profile, isLoading: profileLoading } = useProfile();
+  const { applications: sendedApps } = useApplications('sended');
+  const { applications: fastbookApps } = useApplications('fastbooks');
+  const { applications: confirmedApps } = useApplications('confirmed');
+  const { applications: closedApps } = useApplications('closed');
+  const { notifications, unreadCount } = useNotifications();
+
   const stats = {
-    sended: 5,
-    fastbooks: 2,
-    confirmed: 3,
-    closed: 12,
+    sended: sendedApps?.length || 0,
+    fastbooks: fastbookApps?.length || 0,
+    confirmed: confirmedApps?.length || 0,
+    closed: closedApps?.length || 0,
   };
 
-  const recentNotifications = [
-    { id: 1, text: "Nuova offerta: Hostess Milano", time: "2 ore fa", unread: true },
-    { id: 2, text: "Candidatura accettata per evento del 15/12", time: "1 giorno fa", unread: true },
-    { id: 3, text: "Nuovo feedback ricevuto", time: "2 giorni fa", unread: false },
-  ];
+  const recentNotifications = notifications.slice(0, 3);
+
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -42,8 +55,12 @@ const Dashboard = () => {
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-                <p className="text-muted-foreground">Benvenuto, Mario Rossi</p>
-                <p className="text-sm text-muted-foreground">Dipendente - Milano</p>
+                <p className="text-muted-foreground">
+                  Benvenuto, {profile?.first_name} {profile?.last_name}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Dipendente {profile?.city ? `- ${profile.city}` : ''}
+                </p>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" asChild size="sm">
@@ -53,7 +70,7 @@ const Dashboard = () => {
                   </Link>
                 </Button>
                 <Button variant="outline" asChild size="sm">
-                  <Link to="/dipendente-milano/mario-rossi">
+                  <Link to={`/dipendente-milano/${profile?.id}`}>
                     <User className="h-4 w-4 mr-2" />
                     Profilo Pubblico
                   </Link>
@@ -243,17 +260,19 @@ const Dashboard = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {recentNotifications.map((notification) => (
+                  {recentNotifications.map((notification: any) => (
                     <div 
                       key={notification.id}
                       className={`p-3 rounded-lg border ${
-                        notification.unread 
+                        !notification.read 
                           ? 'bg-primary/5 border-primary/20' 
                           : 'bg-background border-border'
                       }`}
                     >
-                      <p className="text-sm font-medium mb-1">{notification.text}</p>
-                      <p className="text-xs text-muted-foreground">{notification.time}</p>
+                      <p className="text-sm font-medium mb-1">{notification.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(notification.created_at).toLocaleDateString('it-IT')}
+                      </p>
                     </div>
                   ))}
                 </CardContent>

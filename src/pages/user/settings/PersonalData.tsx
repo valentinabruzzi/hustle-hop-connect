@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,26 +7,63 @@ import { Label } from "@/components/ui/label";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft } from "lucide-react";
+import { useProfile } from "@/hooks/useProfile";
+import { ArrowLeft, Loader2 } from "lucide-react";
 
 const PersonalData = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { profile, updateProfile } = useProfile();
+  const [saving, setSaving] = useState(false);
+  
   const [formData, setFormData] = useState({
-    firstName: "Mario",
-    lastName: "Rossi",
-    birthDate: "1995-03-15",
-    birthPlace: "Milano",
-    fiscalCode: "RSSMRA95C15F205X",
+    firstName: "",
+    lastName: "",
+    birthDate: "",
+    birthPlace: "",
+    fiscalCode: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        firstName: profile.first_name || "",
+        lastName: profile.last_name || "",
+        birthDate: profile.birth_date || "",
+        birthPlace: profile.birth_place || "",
+        fiscalCode: profile.fiscal_code || "",
+      });
+    }
+  }, [profile]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Modifiche salvate!",
-      description: "I tuoi dati personali sono stati aggiornati.",
-    });
-    setTimeout(() => navigate("/user/settings"), 1000);
+    setSaving(true);
+
+    try {
+      await updateProfile.mutateAsync({
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        birth_date: formData.birthDate,
+        birth_place: formData.birthPlace,
+        fiscal_code: formData.fiscalCode,
+      });
+
+      toast({
+        title: "Modifiche salvate!",
+        description: "I tuoi dati personali sono stati aggiornati.",
+      });
+      
+      setTimeout(() => navigate("/user/settings"), 1000);
+    } catch (error) {
+      toast({
+        title: "Errore",
+        description: "Impossibile salvare le modifiche",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -96,8 +133,9 @@ const PersonalData = () => {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full bg-gradient-primary">
-                  Salva Modifiche
+                <Button type="submit" className="w-full bg-gradient-primary" disabled={saving}>
+                  {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {saving ? 'Salvataggio...' : 'Salva Modifiche'}
                 </Button>
               </form>
             </CardContent>
