@@ -56,6 +56,9 @@ export const AskAI = ({ userType }: AskAIProps) => {
           message: userMessage,
           userType,
           conversationId
+        },
+        headers: {
+          Authorization: `Bearer ${session!.access_token}`,
         }
       });
 
