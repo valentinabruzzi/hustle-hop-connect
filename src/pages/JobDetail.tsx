@@ -206,12 +206,25 @@ const JobDetail = () => {
                   )}
 
                   {job.benefits && (
-                    <div>
-                      <h3 className="font-semibold mb-3">Benefit</h3>
-                      <p className="text-sm text-muted-foreground whitespace-pre-line">{job.benefits}</p>
-                    </div>
+                    <>
+                      <Separator />
+                      <div>
+                        <h3 className="font-semibold mb-3">Benefit</h3>
+                        <p className="text-sm text-muted-foreground whitespace-pre-line">{job.benefits}</p>
+                      </div>
+                    </>
                   )}
                 </CardContent>
+                <CardFooter>
+                  <Button 
+                    className="w-full" 
+                    size="lg"
+                    disabled={hasApplied || applying || (job.total_spots - (job.filled_spots || 0)) === 0}
+                    onClick={handleApply}
+                  >
+                    {applying ? "Invio in corso..." : hasApplied ? "Candidatura Inviata" : "Candidati Ora"}
+                  </Button>
+                </CardFooter>
               </Card>
             </div>
 
