@@ -13,8 +13,11 @@ serve(async (req) => {
 
   try {
     const { message, userType, conversationId } = await req.json();
+    console.log('Request received:', { userType, hasConversationId: !!conversationId });
+    
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     
     if (!LOVABLE_API_KEY) {
@@ -22,27 +25,52 @@ serve(async (req) => {
     }
 
     const authHeader = req.headers.get('Authorization');
-    const token = authHeader?.replace('Bearer ', '');
+    if (!authHeader) {
+      throw new Error("Authorization header is missing");
+    }
     
-    // Initialize Supabase client with user token
+    // Initialize Supabase clients
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
-    const supabaseUser = createClient(SUPABASE_URL!, token!);
+    const supabaseUser = createClient(
+      SUPABASE_URL!,
+      SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: authHeader,
+          },
+        },
+      }
+    );
+
+    // Get user
+    const { data: { user }, error: userError } = await supabaseUser.auth.getUser();
+    if (userError || !user) {
+      console.error('Auth error:', userError);
+      throw new Error("User not authenticated");
+    }
+    console.log('User authenticated:', user.id);
 
     // Get or create conversation
     let currentConversationId = conversationId;
     if (!currentConversationId) {
-      const { data: userData } = await supabaseUser.auth.getUser();
+      console.log('Creating new conversation for user:', user.id);
       const { data: newConv, error: convError } = await supabaseUser
         .from('ai_conversations')
-        .insert({ user_id: userData.user?.id })
+        .insert({ user_id: user.id })
         .select()
         .single();
       
-      if (convError) throw convError;
+      if (convError) {
+        console.error('Error creating conversation:', convError);
+        throw convError;
+      }
       currentConversationId = newConv.id;
+      console.log('New conversation created:', currentConversationId);
     }
 
     // Get conversation history
+    console.log('Fetching history for conversation:', currentConversationId);
     const { data: history, error: historyError } = await supabaseUser
       .from('ai_messages')
       .select('role, content')
@@ -50,16 +78,26 @@ serve(async (req) => {
       .order('created_at', { ascending: true })
       .limit(20);
 
-    if (historyError) throw historyError;
+    if (historyError) {
+      console.error('Error fetching history:', historyError);
+      throw historyError;
+    }
+    console.log('History fetched:', history?.length || 0, 'messages');
 
     // Save user message
-    await supabaseUser
+    console.log('Saving user message');
+    const { error: saveError } = await supabaseUser
       .from('ai_messages')
       .insert({
         conversation_id: currentConversationId,
         role: 'user',
         content: message
       });
+    
+    if (saveError) {
+      console.error('Error saving user message:', saveError);
+      throw saveError;
+    }
 
     // Query profiles with experiences to provide real data
     const { data: profiles, error: profilesError } = await supabase
@@ -139,16 +177,24 @@ serve(async (req) => {
 
     const data = await response.json();
     const aiResponse = data.choices[0].message.content;
+    console.log('AI response received');
 
     // Save assistant message
-    await supabaseUser
+    console.log('Saving assistant message');
+    const { error: saveAssistantError } = await supabaseUser
       .from('ai_messages')
       .insert({
         conversation_id: currentConversationId,
         role: 'assistant',
         content: aiResponse
       });
+    
+    if (saveAssistantError) {
+      console.error('Error saving assistant message:', saveAssistantError);
+      // Don't throw, just log - we still want to return the response
+    }
 
+    console.log('Request completed successfully');
     return new Response(
       JSON.stringify({ 
         response: aiResponse,
@@ -160,8 +206,15 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error("Error in ask-ai function:", error);
+    const errorMessage = error instanceof Error ? error.message : "Errore sconosciuto";
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error("Error details:", { message: errorMessage, stack: errorStack });
+    
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Errore sconosciuto" }),
+      JSON.stringify({ 
+        error: errorMessage,
+        details: errorStack 
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
