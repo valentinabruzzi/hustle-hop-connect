@@ -52,6 +52,8 @@ import PaymentInfo from "./pages/user/settings/PaymentInfo";
 import CreateJob from "./pages/company/CreateJob";
 import CompanyJobs from "./pages/company/Jobs";
 import CompanyApplications from "./pages/company/Applications";
+import UserCalendar from "./pages/user/Calendar";
+import CompanyCalendar from "./pages/company/Calendar";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -113,6 +115,8 @@ const App = () => (
             <Route path="/company/create-job" element={<ProtectedRoute><CreateJob /></ProtectedRoute>} />
             <Route path="/company/jobs" element={<ProtectedRoute><CompanyJobs /></ProtectedRoute>} />
             <Route path="/company/applications" element={<ProtectedRoute><CompanyApplications /></ProtectedRoute>} />
+            <Route path="/user/calendar" element={<ProtectedRoute><UserCalendar /></ProtectedRoute>} />
+            <Route path="/company/calendar" element={<ProtectedRoute><CompanyCalendar /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
