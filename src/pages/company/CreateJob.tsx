@@ -11,11 +11,13 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Briefcase } from "lucide-react";
 
 const CreateJob = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -39,7 +41,20 @@ const CreateJob = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase.from("jobs").insert([formData]);
+    if (!user?.id) {
+      toast({
+        title: "Errore",
+        description: "Devi essere autenticato per pubblicare un lavoro",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
+    const { error } = await supabase.from("jobs").insert([{
+      ...formData,
+      created_by: user.id
+    }]);
 
     if (error) {
       toast({
@@ -51,9 +66,9 @@ const CreateJob = () => {
     } else {
       toast({
         title: "Lavoro pubblicato!",
-        description: "Il tuo annuncio è ora visibile a tutti",
+        description: "Il tuo annuncio è ora visibile a tutti i dipendenti",
       });
-      navigate("/explore-jobs");
+      navigate("/user/dashboard");
     }
   };
 
