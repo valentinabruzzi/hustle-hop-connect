@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, userType } = await req.json();
+    const { message, userType, conversationId } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -21,8 +21,45 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    // Initialize Supabase client
+    const authHeader = req.headers.get('Authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    
+    // Initialize Supabase client with user token
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
+    const supabaseUser = createClient(SUPABASE_URL!, token!);
+
+    // Get or create conversation
+    let currentConversationId = conversationId;
+    if (!currentConversationId) {
+      const { data: userData } = await supabaseUser.auth.getUser();
+      const { data: newConv, error: convError } = await supabaseUser
+        .from('ai_conversations')
+        .insert({ user_id: userData.user?.id })
+        .select()
+        .single();
+      
+      if (convError) throw convError;
+      currentConversationId = newConv.id;
+    }
+
+    // Get conversation history
+    const { data: history, error: historyError } = await supabaseUser
+      .from('ai_messages')
+      .select('role, content')
+      .eq('conversation_id', currentConversationId)
+      .order('created_at', { ascending: true })
+      .limit(20);
+
+    if (historyError) throw historyError;
+
+    // Save user message
+    await supabaseUser
+      .from('ai_messages')
+      .insert({
+        conversation_id: currentConversationId,
+        role: 'user',
+        content: message
+      });
 
     // Query profiles with experiences to provide real data
     const { data: profiles, error: profilesError } = await supabase
@@ -70,6 +107,7 @@ serve(async (req) => {
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
+          ...(history || []),
           { role: "user", content: message }
         ],
       }),
@@ -102,8 +140,20 @@ serve(async (req) => {
     const data = await response.json();
     const aiResponse = data.choices[0].message.content;
 
+    // Save assistant message
+    await supabaseUser
+      .from('ai_messages')
+      .insert({
+        conversation_id: currentConversationId,
+        role: 'assistant',
+        content: aiResponse
+      });
+
     return new Response(
-      JSON.stringify({ response: aiResponse }),
+      JSON.stringify({ 
+        response: aiResponse,
+        conversationId: currentConversationId
+      }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
