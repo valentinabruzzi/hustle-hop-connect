@@ -7,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { useProfile } from "@/hooks/useProfile";
 import { useApplications } from "@/hooks/useApplications";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useFeedbacks } from "@/hooks/useFeedbacks";
 import { 
   Briefcase, 
   Send, 
@@ -26,6 +27,7 @@ const Dashboard = () => {
   const { applications: confirmedApps } = useApplications('confirmed');
   const { applications: closedApps } = useApplications('closed');
   const { notifications, unreadCount } = useNotifications();
+  const { feedbacks } = useFeedbacks();
 
   const stats = {
     sended: sendedApps?.length || 0,
@@ -35,6 +37,7 @@ const Dashboard = () => {
   };
 
   const recentNotifications = notifications.slice(0, 3);
+  const recentFeedbacks = feedbacks.slice(0, 3);
 
   if (profileLoading) {
     return (
@@ -227,20 +230,33 @@ const Dashboard = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="p-4 border border-border rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="font-medium">Fashion Week Milano</p>
-                      <div className="flex items-center gap-1">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star key={star} className="h-4 w-4 fill-warning text-warning" />
-                        ))}
-                      </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      "Professionale, puntuale e con ottime capacità comunicative. Consigliato!"
+                  {recentFeedbacks.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      Nessun feedback ricevuto ancora
                     </p>
-                    <p className="text-xs text-muted-foreground mt-2">3 giorni fa</p>
-                  </div>
+                  ) : (
+                    recentFeedbacks.map((feedback: any) => (
+                      <div key={feedback.id} className="p-4 border border-border rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="font-medium">{feedback.jobs?.title}</p>
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star 
+                                key={star} 
+                                className={`h-4 w-4 ${star <= feedback.rating ? 'fill-warning text-warning' : 'text-muted-foreground'}`} 
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        {feedback.comment && (
+                          <p className="text-sm text-muted-foreground">"{feedback.comment}"</p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {new Date(feedback.created_at).toLocaleDateString('it-IT')}
+                        </p>
+                      </div>
+                    ))
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -260,21 +276,27 @@ const Dashboard = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {recentNotifications.map((notification: any) => (
-                    <div 
-                      key={notification.id}
-                      className={`p-3 rounded-lg border ${
-                        !notification.read 
-                          ? 'bg-primary/5 border-primary/20' 
-                          : 'bg-background border-border'
-                      }`}
-                    >
-                      <p className="text-sm font-medium mb-1">{notification.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(notification.created_at).toLocaleDateString('it-IT')}
-                      </p>
-                    </div>
-                  ))}
+                  {recentNotifications.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      Nessuna notifica
+                    </p>
+                  ) : (
+                    recentNotifications.map((notification: any) => (
+                      <div 
+                        key={notification.id}
+                        className={`p-3 rounded-lg border ${
+                          !notification.read 
+                            ? 'bg-primary/5 border-primary/20' 
+                            : 'bg-background border-border'
+                        }`}
+                      >
+                        <p className="text-sm font-medium mb-1">{notification.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(notification.created_at).toLocaleDateString('it-IT')}
+                        </p>
+                      </div>
+                    ))
+                  )}
                 </CardContent>
               </Card>
             </div>
