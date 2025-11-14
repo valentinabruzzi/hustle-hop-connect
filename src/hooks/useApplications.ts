@@ -29,7 +29,7 @@ export const useApplications = (status?: string) => {
         query = query.eq('status', 'completed');
       }
       
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data, error } = await query.order('applied_at', { ascending: false });
       
       if (error) throw error;
       return data;
