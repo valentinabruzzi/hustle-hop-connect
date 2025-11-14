@@ -9,23 +9,26 @@ import { useProfile } from "@/hooks/useProfile";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNotifications } from "@/hooks/useNotifications";
 import { parseISO } from "date-fns";
 import { it } from "date-fns/locale";
 import { 
   Briefcase, 
   Users, 
-  CheckCircle, 
-  Clock, 
   Settings,
   Plus,
   TrendingUp,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  Bell,
+  MapPin,
+  Euro
 } from "lucide-react";
 
 const CompanyDashboard = () => {
   const navigate = useNavigate();
   const { profile, isLoading: profileLoading } = useProfile();
   const { user } = useAuth();
+  const { notifications } = useNotifications();
 
   // Fetch jobs created by company
   const { data: jobs } = useQuery({
@@ -43,34 +46,11 @@ const CompanyDashboard = () => {
     enabled: !!user?.id,
   });
 
-  // Fetch applications for company jobs
-  const { data: applications } = useQuery({
-    queryKey: ['company-applications', user?.id],
-    queryFn: async () => {
-      const jobIds = jobs?.map(j => j.id) || [];
-      if (jobIds.length === 0) return [];
-      
-      const { data, error } = await supabase
-        .from('applications')
-        .select('*, jobs!inner(*), profiles!inner(*)')
-        .in('job_id', jobIds)
-        .order('applied_at', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!jobs && jobs.length > 0,
-  });
+  // Separate active and expired jobs
+  const activeJobs = jobs?.filter(j => new Date(j.end_date) >= new Date()) || [];
+  const expiredJobs = jobs?.filter(j => new Date(j.end_date) < new Date()) || [];
 
-  const stats = {
-    activeJobs: jobs?.filter(j => new Date(j.end_date) >= new Date()).length || 0,
-    totalApplications: applications?.length || 0,
-    pendingApplications: applications?.filter(a => a.status === 'pending').length || 0,
-    confirmedApplications: applications?.filter(a => a.status === 'confirmed').length || 0,
-  };
-
-  const recentApplications = applications?.slice(0, 5) || [];
-  const recentJobs = jobs?.slice(0, 3) || [];
+  const recentNotifications = notifications.slice(0, 3);
 
   // Get dates with events for mini calendar
   const datesWithEvents = jobs?.map(job => ({
@@ -148,144 +128,18 @@ const CompanyDashboard = () => {
             </Card>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Lavori Attivi
-                </CardTitle>
-                <Briefcase className="h-5 w-5 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{stats.activeJobs}</div>
-                <Link to="/company/jobs" className="text-sm text-primary hover:underline flex items-center mt-2">
-                  Vedi tutti →
-                </Link>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Candidature Ricevute
-                </CardTitle>
-                <Users className="h-5 w-5 text-blue-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{stats.totalApplications}</div>
-                <Link to="/company/applications" className="text-sm text-primary hover:underline flex items-center mt-2">
-                  Vedi tutte →
-                </Link>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Da Valutare
-                </CardTitle>
-                <Clock className="h-5 w-5 text-orange-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{stats.pendingApplications}</div>
-                <Link to="/company/applications?status=pending" className="text-sm text-primary hover:underline flex items-center mt-2">
-                  Vedi tutte →
-                </Link>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Confermate
-                </CardTitle>
-                <CheckCircle className="h-5 w-5 text-green-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{stats.confirmedApplications}</div>
-                <Link to="/company/applications?status=confirmed" className="text-sm text-primary hover:underline flex items-center mt-2">
-                  Vedi tutte →
-                </Link>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Recent Applications */}
-            <Card className="lg:col-span-2">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    Candidature Recenti
-                  </CardTitle>
-                  <CardDescription>Ultime candidature ricevute</CardDescription>
-                </div>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/company/applications" className="text-primary">
-                    Tutte
-                  </Link>
-                </Button>
-              </CardHeader>
-              <CardContent>
-                {recentApplications.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">
-                    Nessuna candidatura ricevuta
-                  </p>
-                ) : (
-                  <div className="space-y-4">
-                    {recentApplications.map((app: any) => (
-                      <div key={app.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="font-medium">{app.profiles.first_name} {app.profiles.last_name}</p>
-                            <Badge variant={
-                              app.status === 'pending' ? 'default' :
-                              app.status === 'accepted' || app.status === 'confirmed' ? 'default' :
-                              'secondary'
-                            } className={
-                              app.status === 'pending' ? 'bg-orange-100 text-orange-700' :
-                              app.status === 'accepted' || app.status === 'confirmed' ? 'bg-green-100 text-green-700' :
-                              ''
-                            }>
-                              {app.status === 'pending' ? 'In Attesa' :
-                               app.status === 'accepted' ? 'Accettata' :
-                               app.status === 'confirmed' ? 'Confermata' :
-                               app.status === 'rejected' ? 'Rifiutata' :
-                               'Completata'}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground">{app.jobs.title}</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {new Date(app.applied_at).toLocaleDateString('it-IT')}
-                          </p>
-                        </div>
-                        <Button variant="outline" size="sm" asChild>
-                          <Link to={`/dipendente-milano/${app.user_id}`}>
-                            Vedi Profilo
-                          </Link>
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Recent Jobs */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Briefcase className="h-5 w-5" />
-                  Lavori Pubblicati
-                </CardTitle>
-                <CardDescription>I tuoi ultimi annunci</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {recentJobs.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground mb-4">Nessun lavoro pubblicato</p>
+          {/* Main Content Grid */}
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* Left Column - Main Content */}
+            <div className="md:col-span-2 space-y-6">
+              {/* Lavori Pubblicati Attivi */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Lavori Attivi</CardTitle>
+                      <CardDescription>I tuoi annunci correnti</CardDescription>
+                    </div>
                     <Button asChild size="sm">
                       <Link to="/company/create-job">
                         <Plus className="h-4 w-4 mr-2" />
@@ -293,62 +147,209 @@ const CompanyDashboard = () => {
                       </Link>
                     </Button>
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    {recentJobs.map((job) => (
-                      <div key={job.id} className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                        <div className="flex items-start justify-between mb-2">
-                          <h4 className="font-medium">{job.title}</h4>
-                          {job.urgent && (
-                            <Badge variant="destructive" className="text-xs">Urgente</Badge>
-                          )}
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {activeJobs.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Briefcase className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-20" />
+                      <p className="text-muted-foreground mb-4">Nessun lavoro attivo</p>
+                      <Button asChild size="sm">
+                        <Link to="/company/create-job">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Pubblica il tuo primo lavoro
+                        </Link>
+                      </Button>
+                    </div>
+                  ) : (
+                    activeJobs.slice(0, 5).map((job) => (
+                      <div key={job.id} className="flex items-start justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors">
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between mb-2">
+                            <h4 className="font-medium">{job.title}</h4>
+                            <div className="flex gap-2">
+                              {job.urgent && (
+                                <Badge variant="destructive" className="text-xs">Urgente</Badge>
+                              )}
+                              <Badge variant="outline">{job.type}</Badge>
+                            </div>
+                          </div>
+                          <div className="space-y-1 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-2">
+                              <MapPin className="h-3 w-3" />
+                              <span>{job.city}, {job.province}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <CalendarIcon className="h-3 w-3" />
+                              <span>
+                                {new Date(job.start_date).toLocaleDateString('it-IT')} - {new Date(job.end_date).toLocaleDateString('it-IT')}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <TrendingUp className="h-3 w-3" />
+                              <span>{job.filled_spots || 0} / {job.total_spots} posti occupati</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Euro className="h-3 w-3" />
+                              <span>{job.compensation}</span>
+                            </div>
+                          </div>
                         </div>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          {job.city} • {new Date(job.start_date).toLocaleDateString('it-IT')}
-                        </p>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <TrendingUp className="h-3 w-3" />
-                          <span>{job.filled_spots || 0} / {job.total_spots} posti</span>
+                        <div className="flex flex-col gap-2 ml-4">
+                          <Button variant="outline" size="sm" asChild>
+                            <Link to={`/lavoro/${job.id}`}>
+                              Vedi Annuncio
+                            </Link>
+                          </Button>
+                          <Button variant="outline" size="sm" asChild>
+                            <Link to="/company/applications">
+                              Candidature
+                            </Link>
+                          </Button>
                         </div>
                       </div>
-                    ))}
+                    ))
+                  )}
+                  {activeJobs.length > 5 && (
                     <Button variant="outline" size="sm" asChild className="w-full">
                       <Link to="/company/jobs">
-                        Vedi tutti i lavori
+                        Vedi tutti i lavori attivi
                       </Link>
                     </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  )}
+                </CardContent>
+              </Card>
 
-            {/* Mini Calendar */}
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/company/calendar')}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CalendarIcon className="h-5 w-5" />
-                  Calendario
-                </CardTitle>
-                <CardDescription>Clicca per vedere tutti i tuoi lavori</CardDescription>
-              </CardHeader>
-              <CardContent className="flex justify-center">
-                <Calendar
-                  mode="single"
-                  locale={it}
-                  className="rounded-md border scale-90"
-                  modifiers={{
-                    hasEvent: (date) => hasEvent(date),
-                  }}
-                  modifiersStyles={{
-                    hasEvent: {
-                      fontWeight: 'bold',
-                      backgroundColor: 'hsl(var(--primary) / 0.2)',
-                      color: 'hsl(var(--primary))',
-                    },
-                  }}
-                />
-              </CardContent>
-            </Card>
+              {/* Status Lavori */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Status Lavori</CardTitle>
+                      <CardDescription>Panoramica dei tuoi lavori</CardDescription>
+                    </div>
+                    <Link to="/company/jobs" className="text-sm text-primary hover:underline">
+                      Vedi tutti
+                    </Link>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 border border-border rounded-lg bg-primary/5">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Briefcase className="h-5 w-5 text-primary" />
+                        <span className="text-sm font-medium">Lavori Attivi</span>
+                      </div>
+                      <p className="text-3xl font-bold">{activeJobs.length}</p>
+                      <Link to="/company/jobs" className="text-xs text-primary hover:underline mt-2 inline-block">
+                        Gestisci →
+                      </Link>
+                    </div>
+
+                    <div className="p-4 border border-border rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Briefcase className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-sm font-medium">Lavori Conclusi</span>
+                      </div>
+                      <p className="text-3xl font-bold text-muted-foreground">{expiredJobs.length}</p>
+                      <Link to="/company/jobs" className="text-xs text-primary hover:underline mt-2 inline-block">
+                        Vedi storico →
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Recent Expired Jobs */}
+                  {expiredJobs.length > 0 && (
+                    <div className="mt-6">
+                      <h4 className="text-sm font-medium mb-3">Ultimi lavori conclusi</h4>
+                      <div className="space-y-3">
+                        {expiredJobs.slice(0, 3).map((job) => (
+                          <div key={job.id} className="p-3 border border-border rounded-lg bg-muted/30">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <p className="font-medium text-sm">{job.title}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {job.city} • Concluso il {new Date(job.end_date).toLocaleDateString('it-IT')}
+                                </p>
+                              </div>
+                              <Badge variant="secondary" className="text-xs">Concluso</Badge>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right Column - Sidebar */}
+            <div className="space-y-6">
+              {/* Notifications */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <Bell className="h-5 w-5" />
+                      Notifiche
+                    </CardTitle>
+                    <Link to="/user/dashboard/notifications" className="text-sm text-primary hover:underline">
+                      Tutte
+                    </Link>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {recentNotifications.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      Nessuna notifica
+                    </p>
+                  ) : (
+                    recentNotifications.map((notification: any) => (
+                      <div 
+                        key={notification.id}
+                        className={`p-3 rounded-lg border ${
+                          !notification.read 
+                            ? 'bg-primary/5 border-primary/20' 
+                            : 'bg-background border-border'
+                        }`}
+                      >
+                        <p className="text-sm font-medium mb-1">{notification.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(notification.created_at).toLocaleDateString('it-IT')}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Mini Calendar */}
+              <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/company/calendar')}>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CalendarIcon className="h-5 w-5" />
+                    Calendario
+                  </CardTitle>
+                  <CardDescription>Clicca per vedere tutti i tuoi lavori</CardDescription>
+                </CardHeader>
+                <CardContent className="flex justify-center">
+                  <Calendar
+                    mode="single"
+                    locale={it}
+                    className="rounded-md border scale-90"
+                    modifiers={{
+                      hasEvent: (date) => hasEvent(date),
+                    }}
+                    modifiersStyles={{
+                      hasEvent: {
+                        fontWeight: 'bold',
+                        backgroundColor: 'hsl(var(--primary) / 0.2)',
+                        color: 'hsl(var(--primary))',
+                      },
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
