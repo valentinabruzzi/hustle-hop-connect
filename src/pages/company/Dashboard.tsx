@@ -109,13 +109,13 @@ const CompanyDashboard = () => {
               <CardContent className="p-6 relative z-10">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">Hai bisogno di personale?</h3>
-                    <p className="text-white/90 mb-4">Pubblica un nuovo annuncio e trova i professionisti perfetti</p>
+                    <h3 className="text-xl font-semibold mb-2">Cerchi professionisti?</h3>
+                    <p className="text-white/90 mb-4">Esplora i profili e trova i candidati ideali per la tua azienda</p>
                   </div>
                   <Button size="lg" asChild className="bg-white text-primary hover:bg-white/90">
-                    <Link to="/company/create-job">
-                      <Plus className="h-5 w-5 mr-2" />
-                      Pubblica Lavoro
+                    <Link to="/esplora-profili">
+                      <Users className="h-5 w-5 mr-2" />
+                      Trova Lavoratori
                     </Link>
                   </Button>
                 </div>
