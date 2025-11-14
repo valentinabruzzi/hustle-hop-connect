@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ExploreJobs from "./pages/ExploreJobs";
 import JobDetail from "./pages/JobDetail";
+import PublicProfile from "./pages/PublicProfile";
 import Dashboard from "./pages/user/Dashboard";
 import Notifications from "./pages/user/Notifications";
 import Feedbacks from "./pages/user/Feedbacks";
@@ -15,6 +16,22 @@ import SendedApplications from "./pages/user/applications/Sended";
 import Fastbooks from "./pages/user/applications/Fastbooks";
 import ConfirmedJobs from "./pages/user/applications/Confirmed";
 import ClosedJobs from "./pages/user/applications/Closed";
+import Settings from "./pages/user/Settings";
+import PersonalData from "./pages/user/settings/PersonalData";
+import Gallery from "./pages/user/settings/Gallery";
+import NotificationsSettings from "./pages/user/settings/Notifications";
+import SocialInfo from "./pages/user/settings/SocialInfo";
+import BioExperiences from "./pages/user/settings/BioExperiences";
+import PhysicalInfo from "./pages/user/settings/PhysicalInfo";
+import MoreInfo from "./pages/user/settings/MoreInfo";
+import ChangeEmail from "./pages/user/settings/ChangeEmail";
+import ChangePassword from "./pages/user/settings/ChangePassword";
+import EditPhone from "./pages/user/settings/EditPhone";
+import EditAddress from "./pages/user/settings/EditAddress";
+import Documents from "./pages/user/settings/Documents";
+import Contracts from "./pages/user/settings/Contracts";
+import DisableProfile from "./pages/user/settings/DisableProfile";
+import PaymentInfo from "./pages/user/settings/PaymentInfo";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +48,7 @@ const App = () => (
           <Route path="/register" element={<Register />} />
           <Route path="/esplora-lavori" element={<ExploreJobs />} />
           <Route path="/lavoro/:id" element={<JobDetail />} />
+          <Route path="/dipendente-milano/:id" element={<PublicProfile />} />
           <Route path="/user/dashboard" element={<Dashboard />} />
           <Route path="/user/dashboard/notifications" element={<Notifications />} />
           <Route path="/user/dashboard/feedbacks" element={<Feedbacks />} />
@@ -38,6 +56,22 @@ const App = () => (
           <Route path="/user/dashboard/applications/fastbooks" element={<Fastbooks />} />
           <Route path="/user/dashboard/applications/confirmed" element={<ConfirmedJobs />} />
           <Route path="/user/dashboard/applications/closed" element={<ClosedJobs />} />
+          <Route path="/user/settings" element={<Settings />} />
+          <Route path="/user/settings/edit-personal-data" element={<PersonalData />} />
+          <Route path="/user/settings/edit-gallery" element={<Gallery />} />
+          <Route path="/user/settings/edit-notifications" element={<NotificationsSettings />} />
+          <Route path="/user/settings/edit-social-info" element={<SocialInfo />} />
+          <Route path="/user/settings/edit-bio-and-experiences" element={<BioExperiences />} />
+          <Route path="/user/settings/edit-physical-info" element={<PhysicalInfo />} />
+          <Route path="/user/settings/edit-more-informations" element={<MoreInfo />} />
+          <Route path="/user/settings/change-email-address" element={<ChangeEmail />} />
+          <Route path="/user/settings/change-password" element={<ChangePassword />} />
+          <Route path="/user/settings/edit-phone" element={<EditPhone />} />
+          <Route path="/user/settings/edit-address" element={<EditAddress />} />
+          <Route path="/user/settings/edit-documents" element={<Documents />} />
+          <Route path="/user/settings/edit-contracts" element={<Contracts />} />
+          <Route path="/user/settings/disable-profile" element={<DisableProfile />} />
+          <Route path="/user/settings/payment-info" element={<PaymentInfo />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
