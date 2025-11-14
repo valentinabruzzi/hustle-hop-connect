@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.81.1';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,14 +14,51 @@ serve(async (req) => {
   try {
     const { message, userType } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
+    // Initialize Supabase client
+    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
+
+    // Query profiles with experiences to provide real data
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select(`
+        id,
+        first_name,
+        last_name,
+        city,
+        bio,
+        average_rating,
+        total_reviews,
+        completed_jobs,
+        experiences (
+          title,
+          company
+        )
+      `)
+      .eq('profile_active', true)
+      .order('average_rating', { ascending: false })
+      .limit(10);
+
+    if (profilesError) {
+      console.error('Error fetching profiles:', profilesError);
+    }
+
+    // Create context with real data
+    const profilesContext = profiles && profiles.length > 0
+      ? `\n\nProfili disponibili sulla piattaforma:\n${profiles.map(p => 
+          `- ${p.first_name} ${p.last_name} (${p.city || 'Città non specificata'}): ${p.bio || 'Nessuna bio'}, Rating: ${p.average_rating || 0}/5 (${p.total_reviews || 0} recensioni), Lavori completati: ${p.completed_jobs || 0}. Esperienze: ${p.experiences?.map(e => e.title).join(', ') || 'Nessuna esperienza'}`
+        ).join('\n')}`
+      : '\n\nAttualmente non ci sono profili attivi sulla piattaforma.';
+
     const systemPrompt = userType === 'azienda' 
-      ? "Sei un assistente AI specializzato nell'aiutare le aziende a trovare i migliori lavoratori. Fornisci consigli su come scrivere annunci efficaci, quali caratteristiche cercare nei candidati, e suggerisci strategie di ricerca. Rispondi in italiano in modo chiaro e professionale."
-      : "Sei un assistente AI specializzato nell'aiutare i lavoratori a trovare opportunità di lavoro. Fornisci consigli su come migliorare il profilo, come candidarsi efficacemente, e suggerisci strategie per distinguersi. Rispondi in italiano in modo chiaro e amichevole.";
+      ? `Sei un assistente AI che aiuta le aziende a trovare lavoratori sulla piattaforma. Rispondi in modo CONCISO (max 3-4 righe). Se chiedi di una figura specifica (es. modella, hostess), controlla nei profili disponibili se ci sono persone con quella esperienza. Se non ci sono, dì chiaramente "Attualmente non ci sono [figura] sulla piattaforma". Suggerisci profili reali basandoti su rating e esperienze.${profilesContext}`
+      : `Sei un assistente AI che aiuta i lavoratori a trovare opportunità. Rispondi in modo CONCISO (max 3-4 righe). Fornisci consigli pratici su come migliorare il profilo e distinguersi.${profilesContext}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
