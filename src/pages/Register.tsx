@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,6 +20,7 @@ const Register = () => {
     phone: "",
     password: "",
     confirmPassword: "",
+    role: "dipendente" as 'dipendente' | 'azienda',
   });
   const [loading, setLoading] = useState(false);
 
@@ -51,7 +53,7 @@ const Register = () => {
 
     setLoading(true);
 
-    const { error } = await signUp(formData.email, formData.password, formData.firstName, formData.lastName);
+    const { error } = await signUp(formData.email, formData.password, formData.firstName, formData.lastName, formData.role);
     
     if (error) {
       toast({
@@ -90,6 +92,28 @@ const Register = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-3">
+                <Label>Tipo di account</Label>
+                <RadioGroup
+                  value={formData.role}
+                  onValueChange={(value: 'dipendente' | 'azienda') => setFormData({ ...formData, role: value })}
+                  className="flex gap-4"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="dipendente" id="dipendente" />
+                    <Label htmlFor="dipendente" className="font-normal cursor-pointer">
+                      Cerco lavoro
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="azienda" id="azienda" />
+                    <Label htmlFor="azienda" className="font-normal cursor-pointer">
+                      Sono un'azienda
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">Nome</Label>
