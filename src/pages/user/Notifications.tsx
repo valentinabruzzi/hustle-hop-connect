@@ -13,30 +13,100 @@ import {
   Bell
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNotifications } from "@/hooks/useNotifications";
-import { formatDistanceToNow } from "date-fns";
-import { it } from "date-fns/locale";
-
-const getNotificationIcon = (type: string) => {
-  switch (type) {
-    case "job_offer":
-      return { icon: Briefcase, color: "text-primary" };
-    case "invitation":
-      return { icon: Mail, color: "text-accent" };
-    case "application_accepted":
-    case "application_confirmed":
-      return { icon: CheckCircle, color: "text-success" };
-    case "application_rejected":
-      return { icon: XCircle, color: "text-destructive" };
-    case "feedback":
-      return { icon: Star, color: "text-warning" };
-    default:
-      return { icon: Bell, color: "text-muted-foreground" };
-  }
-};
 
 const Notifications = () => {
-  const { notifications, isLoading, unreadCount, markAsRead } = useNotifications();
+  const notifications = [
+    {
+      id: 1,
+      type: "job_offer",
+      title: "Nuova offerta di lavoro",
+      message: "Hostess per Fashion Week Milano - Perfetto per il tuo profilo",
+      time: "2 ore fa",
+      unread: true,
+      link: "/lavoro/1",
+      icon: Briefcase,
+      color: "text-primary"
+    },
+    {
+      id: 2,
+      type: "invitation",
+      title: "Invito ricevuto",
+      message: "Luxury Events ti ha invitato per Evento Concerto Arena",
+      time: "5 ore fa",
+      unread: true,
+      link: "/user/dashboard/applications/fastbooks",
+      icon: Mail,
+      color: "text-accent"
+    },
+    {
+      id: 3,
+      type: "application_accepted",
+      title: "Candidatura accettata",
+      message: "La tua candidatura per Promoter Evento Sportivo è stata accettata",
+      time: "1 giorno fa",
+      unread: true,
+      link: "/lavoro/2",
+      icon: CheckCircle,
+      color: "text-success"
+    },
+    {
+      id: 4,
+      type: "feedback",
+      title: "Nuovo feedback ricevuto",
+      message: "Fashion Events ha lasciato una recensione a 5 stelle per il tuo ultimo lavoro",
+      time: "2 giorni fa",
+      unread: false,
+      link: "/user/dashboard/feedbacks",
+      icon: Star,
+      color: "text-warning"
+    },
+    {
+      id: 5,
+      type: "job_offer",
+      title: "Nuova offerta di lavoro",
+      message: "Steward per Concerto - 3 posti disponibili a Milano",
+      time: "2 giorni fa",
+      unread: false,
+      link: "/lavoro/3",
+      icon: Briefcase,
+      color: "text-primary"
+    },
+    {
+      id: 6,
+      type: "application_confirmed",
+      title: "Lavoro confermato",
+      message: "Il lavoro Hostess Fiera del 20 Dic è confermato. Ricordati di presentarti 30 minuti prima.",
+      time: "3 giorni fa",
+      unread: false,
+      link: "/user/dashboard/applications/confirmed",
+      icon: CheckCircle,
+      color: "text-success"
+    },
+    {
+      id: 7,
+      type: "application_rejected",
+      title: "Candidatura non accettata",
+      message: "Purtroppo la tua candidatura per Promoter Centro Commerciale non è stata accettata",
+      time: "4 giorni fa",
+      unread: false,
+      link: "/lavoro/4",
+      icon: XCircle,
+      color: "text-destructive"
+    },
+    {
+      id: 8,
+      type: "job_offer",
+      title: "Nuova offerta urgente",
+      message: "URGENTE: Hostess per evento oggi pomeriggio - Ottimo compenso",
+      time: "5 giorni fa",
+      unread: false,
+      link: "/lavoro/5",
+      icon: Briefcase,
+      color: "text-primary"
+    },
+  ];
+
+  const unreadCount = notifications.filter(n => n.unread).length;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -70,80 +140,62 @@ const Notifications = () => {
 
           {/* Notifications List */}
           <div className="space-y-3 max-w-4xl">
-            {isLoading ? (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <p className="text-muted-foreground">Caricamento notifiche...</p>
-                </CardContent>
-              </Card>
-            ) : notifications.length > 0 ? (
-              notifications.map((notification: any) => {
-                const { icon: Icon, color } = getNotificationIcon(notification.type);
-                const timeAgo = formatDistanceToNow(new Date(notification.created_at), {
-                  addSuffix: true,
-                  locale: it
-                });
-                
-                return (
-                  <div
-                    key={notification.id}
-                    onClick={() => {
-                      if (!notification.read) {
-                        markAsRead.mutate(notification.id);
-                      }
-                    }}
+            {notifications.map((notification) => {
+              const Icon = notification.icon;
+              return (
+                <Link key={notification.id} to={notification.link}>
+                  <Card 
+                    className={`hover:shadow-md transition-all cursor-pointer ${
+                      notification.unread 
+                        ? 'bg-primary/5 border-primary/20 border-l-4 border-l-primary' 
+                        : 'bg-background'
+                    }`}
                   >
-                    <Card 
-                      className={`hover:shadow-md transition-all cursor-pointer ${
-                        !notification.read 
-                          ? 'bg-primary/5 border-primary/20 border-l-4 border-l-primary' 
-                          : 'bg-background'
-                      }`}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-4">
-                          <div className={`mt-1 ${color}`}>
-                            <Icon className="h-6 w-6" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-4 mb-1">
-                              <h3 className="font-semibold text-base">
-                                {notification.title}
-                              </h3>
-                              <div className="flex items-center gap-2 flex-shrink-0">
-                                {!notification.read && (
-                                  <Badge variant="default" className="bg-primary text-primary-foreground">
-                                    Nuova
-                                  </Badge>
-                                )}
-                                <span className="text-xs text-muted-foreground whitespace-nowrap">
-                                  {timeAgo}
-                                </span>
-                              </div>
-                            </div>
-                            <p className="text-sm text-foreground">
-                              {notification.message}
-                            </p>
-                          </div>
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-4">
+                        <div className={`mt-1 ${notification.color}`}>
+                          <Icon className="h-6 w-6" />
                         </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                );
-              })
-            ) : (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <Bell className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-                  <h3 className="text-xl font-semibold mb-2">Nessuna notifica</h3>
-                  <p className="text-muted-foreground">
-                    Le tue notifiche appariranno qui
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-4 mb-1">
+                            <h3 className="font-semibold text-base">
+                              {notification.title}
+                            </h3>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              {notification.unread && (
+                                <Badge variant="default" className="bg-primary text-primary-foreground">
+                                  Nuova
+                                </Badge>
+                              )}
+                              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                {notification.time}
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-sm text-foreground">
+                            {notification.message}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
 
+          {/* Empty State (if needed) */}
+          {notifications.length === 0 && (
+            <Card className="max-w-4xl">
+              <CardContent className="p-12 text-center">
+                <Bell className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                <h3 className="text-xl font-semibold mb-2">Nessuna notifica</h3>
+                <p className="text-muted-foreground">
+                  Le tue notifiche appariranno qui
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 

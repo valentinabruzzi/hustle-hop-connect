@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { useApplications } from "@/hooks/useApplications";
 import { 
   ArrowLeft,
   Calendar,
@@ -14,38 +13,74 @@ import {
 } from "lucide-react";
 
 const SendedApplications = () => {
-  const { applications = [], isLoading } = useApplications('sended');
+  const applications = [
+    {
+      id: 1,
+      jobTitle: "Hostess per Fashion Week Milano",
+      company: "Fashion Events SRL",
+      city: "Milano",
+      date: "15 Dic 2024",
+      appliedDate: "2 giorni fa",
+      status: "in_attesa",
+      statusLabel: "In Attesa",
+      compensation: "€150/giorno"
+    },
+    {
+      id: 2,
+      jobTitle: "Steward Concerto Arena",
+      company: "Live Nation Events",
+      city: "Milano",
+      date: "18 Dic 2024",
+      appliedDate: "3 giorni fa",
+      status: "in_attesa",
+      statusLabel: "In Attesa",
+      compensation: "In descrizione"
+    },
+    {
+      id: 3,
+      jobTitle: "Promoter Centro Commerciale",
+      company: "Retail Promo",
+      city: "Torino",
+      date: "22 Dic 2024",
+      appliedDate: "5 giorni fa",
+      status: "rifiutata",
+      statusLabel: "Non Accettata",
+      compensation: "€100/giorno"
+    },
+    {
+      id: 4,
+      jobTitle: "Hostess Evento Aziendale",
+      company: "Corporate Events Pro",
+      city: "Milano",
+      date: "12 Dic 2024",
+      appliedDate: "1 settimana fa",
+      status: "scaduta",
+      statusLabel: "Scaduta",
+      compensation: "€130/giorno"
+    },
+    {
+      id: 5,
+      jobTitle: "Promoter Fiera Tecnologia",
+      company: "Tech Expo Group",
+      city: "Bologna",
+      date: "25 Dic 2024",
+      appliedDate: "1 settimana fa",
+      status: "in_attesa",
+      statusLabel: "In Attesa",
+      compensation: "€120/giorno"
+    }
+  ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "pending": return "border-warning text-warning";
-      case "rejected": return "border-destructive text-destructive";
-      case "accepted": return "border-success text-success";
-      case "confirmed": return "border-success text-success";
+      case "in_attesa": return "border-warning text-warning";
+      case "rifiutata": return "border-destructive text-destructive";
+      case "scaduta": return "border-muted-foreground text-muted-foreground";
       default: return "border-muted text-muted-foreground";
     }
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "pending": return "In Attesa";
-      case "rejected": return "Rifiutata";
-      case "accepted": return "Accettata";
-      case "confirmed": return "Confermata";
-      case "completed": return "Completata";
-      default: return status;
-    }
-  };
-
-  const pendingCount = applications.filter((a: any) => a.status === "pending").length;
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  const pendingCount = applications.filter(a => a.status === "in_attesa").length;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -71,62 +106,47 @@ const SendedApplications = () => {
           </div>
 
           <div className="space-y-4 max-w-4xl">
-            {applications.length === 0 ? (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <Send className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Nessuna candidatura inviata</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Non hai ancora inviato candidature. Inizia a cercare lavori che ti interessano!
-                  </p>
-                  <Button asChild>
-                    <Link to="/esplora-lavori">Cerca Lavori</Link>
-                  </Button>
+            {applications.map((application) => (
+              <Card key={application.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-xl font-semibold mb-1">{application.jobTitle}</h3>
+                      <p className="text-muted-foreground">{application.company}</p>
+                    </div>
+                    <Badge variant="outline" className={getStatusColor(application.status)}>
+                      {application.statusLabel}
+                    </Badge>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-3 mb-4">
+                    <div className="flex items-center gap-2 text-sm">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span>{application.city}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span>{application.date}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span>Candidato {application.appliedDate}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <span>{application.compensation}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" asChild>
+                      <Link to={`/lavoro/${application.id}`}>
+                        Vedi Dettagli Lavoro
+                      </Link>
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
-            ) : (
-              applications.map((application: any) => (
-                <Card key={application.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between gap-4 mb-4">
-                      <div className="flex-1">
-                        <h3 className="text-xl font-semibold mb-1">{application.jobs?.title}</h3>
-                        <p className="text-muted-foreground">{application.jobs?.company_name}</p>
-                      </div>
-                      <Badge variant="outline" className={getStatusColor(application.status)}>
-                        {getStatusLabel(application.status)}
-                      </Badge>
-                    </div>
-
-                    <div className="grid sm:grid-cols-2 gap-3 mb-4">
-                      <div className="flex items-center gap-2 text-sm">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span>{application.jobs?.city}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span>{new Date(application.jobs?.start_date).toLocaleDateString('it-IT')}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span>Candidato {new Date(application.applied_at).toLocaleDateString('it-IT')}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm font-medium">
-                        <span>{application.jobs?.compensation}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link to={`/lavoro/${application.job_id}`}>
-                          Vedi Dettagli Lavoro
-                        </Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
+            ))}
 
             {applications.length === 0 && (
               <Card>

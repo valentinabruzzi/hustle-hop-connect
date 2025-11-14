@@ -190,46 +190,38 @@ const Dashboard = () => {
                   <CardDescription>Panoramica delle tue candidature recenti</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {sendedApps && sendedApps.length > 0 ? (
-                    sendedApps.slice(0, 3).map((application: any) => {
-                      const statusColor = 
-                        application.status === 'accepted' ? 'bg-success' :
-                        application.status === 'rejected' ? 'bg-destructive' :
-                        application.status === 'confirmed' ? 'bg-success' :
-                        application.status === 'completed' ? 'bg-muted-foreground' :
-                        'bg-warning';
-                      
-                      const statusLabel = 
-                        application.status === 'pending' ? 'In Attesa' :
-                        application.status === 'accepted' ? 'Accettato' :
-                        application.status === 'rejected' ? 'Rifiutato' :
-                        application.status === 'confirmed' ? 'Confermato' :
-                        application.status === 'completed' ? 'Completato' :
-                        'In Attesa';
+                  <div className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-warning rounded-full"></div>
+                      <div>
+                        <p className="font-medium">Hostess per Evento Moda</p>
+                        <p className="text-sm text-muted-foreground">Milano • 15 Dic 2024</p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="border-warning text-warning">In Attesa</Badge>
+                  </div>
 
-                      return (
-                        <div key={application.id} className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-2 h-2 ${statusColor} rounded-full`}></div>
-                            <div>
-                              <p className="font-medium">{application.jobs?.title || 'Lavoro'}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {application.jobs?.city} • {new Date(application.jobs?.start_date).toLocaleDateString('it-IT')}
-                              </p>
-                            </div>
-                          </div>
-                          <Badge variant={application.status === 'confirmed' || application.status === 'accepted' ? 'default' : 'outline'} 
-                                 className={application.status === 'pending' ? 'border-warning text-warning' : ''}>
-                            {statusLabel}
-                          </Badge>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <p className="text-sm text-muted-foreground text-center py-8">
-                      Nessuna candidatura recente
-                    </p>
-                  )}
+                  <div className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-success rounded-full"></div>
+                      <div>
+                        <p className="font-medium">Promoter Evento Sportivo</p>
+                        <p className="text-sm text-muted-foreground">Roma • 20 Dic 2024</p>
+                      </div>
+                    </div>
+                    <Badge className="bg-success text-success-foreground">Confermato</Badge>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                      <div>
+                        <p className="font-medium">Steward Concerto</p>
+                        <p className="text-sm text-muted-foreground">Milano • 18 Dic 2024</p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="border-primary text-primary">Invito</Badge>
+                  </div>
                 </CardContent>
               </Card>
 

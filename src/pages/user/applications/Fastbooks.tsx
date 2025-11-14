@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -5,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
-import { useApplications } from "@/hooks/useApplications";
 import { 
   ArrowLeft,
   Calendar,
@@ -18,18 +18,56 @@ import {
 
 const Fastbooks = () => {
   const { toast } = useToast();
-  const { applications: invitations = [], isLoading } = useApplications('fastbooks');
+  const [invitations, setInvitations] = useState([
+    {
+      id: 1,
+      jobTitle: "Hostess Evento Corporate",
+      company: "Luxury Events Milano",
+      city: "Milano",
+      date: "20 Dic 2024",
+      receivedDate: "1 giorno fa",
+      compensation: "€180/giorno",
+      message: "Abbiamo visto il tuo profilo e pensiamo tu sia perfetta per questo evento di alto livello. Ti aspettiamo!",
+      status: "pending"
+    },
+    {
+      id: 2,
+      jobTitle: "Steward Concerto VIP",
+      company: "Premium Events",
+      city: "Roma",
+      date: "22 Dic 2024",
+      receivedDate: "2 giorni fa",
+      compensation: "€160/giorno",
+      message: "Il tuo profilo professionale ci ha colpito. Evento esclusivo con area VIP.",
+      status: "pending"
+    },
+    {
+      id: 3,
+      jobTitle: "Promoter Fashion Store",
+      company: "Luxury Retail Group",
+      city: "Milano",
+      date: "18 Dic 2024",
+      receivedDate: "3 giorni fa",
+      compensation: "€140/giorno",
+      message: "Inaugurazione nuovo store di lusso. Cerchiamo profili con la tua esperienza.",
+      status: "accepted"
+    }
+  ]);
 
-  const handleAccept = (id: string) => {
-    // TODO: Implementa l'accettazione dell'invito
+  const handleAccept = (id: number) => {
+    setInvitations(invitations.map(inv => 
+      inv.id === id ? { ...inv, status: "accepted" } : inv
+    ));
     toast({
       title: "Invito accettato!",
       description: "L'azienda ti contatterà a breve con i dettagli.",
     });
   };
 
-  const handleDecline = (id: string) => {
-    // TODO: Implementa il rifiuto dell'invito
+  const handleDecline = (id: number) => {
+    setInvitations(invitations.map(inv => 
+      inv.id === id ? { ...inv, status: "declined" } : inv
+    ));
     toast({
       title: "Invito rifiutato",
       description: "Hai rifiutato l'invito.",
@@ -37,15 +75,7 @@ const Fastbooks = () => {
     });
   };
 
-  const pendingInvitations = invitations.filter((i: any) => i.status === "pending");
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  const pendingInvitations = invitations.filter(i => i.status === "pending");
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -71,18 +101,7 @@ const Fastbooks = () => {
           </div>
 
           <div className="space-y-4 max-w-4xl">
-            {invitations.length === 0 ? (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <Mail className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Nessun invito ricevuto</h3>
-                  <p className="text-muted-foreground">
-                    Non hai ancora ricevuto inviti dalle aziende.
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              invitations.map((invitation: any) => (
+            {invitations.map((invitation) => (
               <Card 
                 key={invitation.id} 
                 className={`hover:shadow-md transition-shadow ${
@@ -95,7 +114,7 @@ const Fastbooks = () => {
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="text-xl font-semibold">{invitation.jobs?.title}</h3>
+                        <h3 className="text-xl font-semibold">{invitation.jobTitle}</h3>
                         {invitation.status === "pending" && (
                           <Badge className="bg-accent text-accent-foreground">Nuovo Invito</Badge>
                         )}
@@ -118,15 +137,15 @@ const Fastbooks = () => {
                   <div className="grid sm:grid-cols-2 gap-3 mb-4">
                     <div className="flex items-center gap-2 text-sm">
                       <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span>{invitation.jobs?.city}</span>
+                      <span>{invitation.city}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span>{new Date(invitation.jobs?.start_date).toLocaleDateString('it-IT')}</span>
+                      <span>{invitation.date}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span>Ricevuto {new Date(invitation.applied_at).toLocaleDateString('it-IT')}</span>
+                      <span>Ricevuto {invitation.receivedDate}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm font-semibold">
                       <span className="text-accent">{invitation.compensation}</span>
@@ -163,8 +182,7 @@ const Fastbooks = () => {
                   </div>
                 </CardContent>
               </Card>
-              ))
-            )}
+            ))}
 
             {invitations.length === 0 && (
               <Card>
