@@ -25,7 +25,7 @@ const ExploreJobs = () => {
     city: "",
     dateFrom: "",
     dateTo: "",
-    role: ""
+    role: "all"
   });
 
   const { data: jobs = [], isLoading } = useJobs(filters);
@@ -72,7 +72,7 @@ const ExploreJobs = () => {
                           <SelectValue placeholder="Tutti i ruoli" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Tutti i ruoli</SelectItem>
+                          <SelectItem value="all">Tutti i ruoli</SelectItem>
                           <SelectItem value="hostess">Hostess</SelectItem>
                           <SelectItem value="steward">Steward</SelectItem>
                           <SelectItem value="promoter">Promoter</SelectItem>
