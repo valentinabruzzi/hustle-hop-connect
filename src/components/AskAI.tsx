@@ -38,26 +38,40 @@ export const AskAI = ({ userType }: AskAIProps) => {
       });
 
       if (error) {
-        if (error.message.includes('429')) {
+        console.error('Edge function error:', error);
+        if (error.message?.includes('429')) {
           toast({
             title: "Troppe richieste",
             description: "Hai superato il limite. Riprova tra qualche minuto.",
             variant: "destructive",
           });
-        } else if (error.message.includes('402')) {
+        } else if (error.message?.includes('402')) {
           toast({
             title: "Crediti esauriti",
             description: "Contatta il supporto per aggiungere crediti.",
             variant: "destructive",
           });
         } else {
-          throw error;
+          toast({
+            title: "Errore",
+            description: error.message || "Non è stato possibile ottenere una risposta.",
+            variant: "destructive",
+          });
         }
+        setIsLoading(false);
         return;
       }
 
-      setResponse(data.response);
-      setMessage("");
+      if (data && data.response) {
+        setResponse(data.response);
+        setMessage("");
+      } else {
+        toast({
+          title: "Errore",
+          description: "Risposta non valida dall'AI.",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error('Error asking AI:', error);
       toast({
