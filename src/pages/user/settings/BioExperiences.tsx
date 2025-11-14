@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,31 +8,110 @@ import { Label } from "@/components/ui/label";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Plus, X } from "lucide-react";
+import { useProfile } from "@/hooks/useProfile";
+import { useExperiences } from "@/hooks/useExperiences";
+import { ArrowLeft, Plus, X, Loader2 } from "lucide-react";
 
 const BioExperiences = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [bio, setBio] = useState("Professionista con 5 anni di esperienza nel settore eventi e hospitality. Specializzato in eventi corporate, fashion e sportivi.");
-  const [experiences, setExperiences] = useState([
-    { id: 1, title: "Hostess Fashion Week", company: "Fashion Events SRL", period: "2024", description: "Gestione accoglienza ospiti VIP" },
-  ]);
+  const { profile, updateProfile } = useProfile();
+  const { experiences, addExperience, updateExperience, deleteExperience } = useExperiences();
+  
+  const [bio, setBio] = useState("");
+  const [localExperiences, setLocalExperiences] = useState<any[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      setBio(profile.bio || "");
+    }
+  }, [profile]);
+
+  useEffect(() => {
+    if (experiences) {
+      setLocalExperiences(experiences);
+    }
+  }, [experiences]);
 
   const handleAddExperience = () => {
-    setExperiences([...experiences, { id: Date.now(), title: "", company: "", period: "", description: "" }]);
+    setLocalExperiences([...localExperiences, { 
+      id: `temp-${Date.now()}`, 
+      title: "", 
+      company: "", 
+      period: "", 
+      description: "",
+      isNew: true 
+    }]);
   };
 
-  const handleRemoveExperience = (id: number) => {
-    setExperiences(experiences.filter(exp => exp.id !== id));
+  const handleRemoveExperience = async (exp: any) => {
+    if (exp.isNew) {
+      setLocalExperiences(localExperiences.filter(e => e.id !== exp.id));
+    } else {
+      try {
+        await deleteExperience.mutateAsync(exp.id);
+        toast({
+          title: "Esperienza eliminata",
+          description: "L'esperienza è stata rimossa definitivamente.",
+        });
+      } catch (error) {
+        toast({
+          title: "Errore",
+          description: "Impossibile eliminare l'esperienza",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Modifiche salvate!",
-      description: "Bio ed esperienze aggiornate con successo.",
-    });
-    setTimeout(() => navigate("/user/settings"), 1000);
+    setSaving(true);
+
+    try {
+      await updateProfile.mutateAsync({ bio });
+
+      for (const exp of localExperiences) {
+        if (exp.isNew && exp.title && exp.company) {
+          await addExperience.mutateAsync({
+            title: exp.title,
+            company: exp.company,
+            period: exp.period,
+            description: exp.description,
+          });
+        } else if (!exp.isNew && exp.title && exp.company) {
+          await updateExperience.mutateAsync({
+            id: exp.id,
+            title: exp.title,
+            company: exp.company,
+            period: exp.period,
+            description: exp.description,
+          });
+        }
+      }
+
+      toast({
+        title: "Modifiche salvate!",
+        description: "Bio ed esperienze aggiornate con successo.",
+      });
+      
+      setTimeout(() => navigate("/user/settings"), 1000);
+    } catch (error) {
+      toast({
+        title: "Errore",
+        description: "Impossibile salvare le modifiche",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateLocalExperience = (id: string, field: string, value: string) => {
+    setLocalExperiences(localExperiences.map(exp => 
+      exp.id === id ? { ...exp, [field]: value } : exp
+    ));
   };
 
   return (
@@ -95,30 +174,30 @@ const BioExperiences = () => {
                           placeholder="Titolo ruolo"
                           value={exp.title}
                           onChange={(e) => {
-                            const updated = experiences.map(item =>
+                            const updated = localExperiences.map(item =>
                               item.id === exp.id ? { ...item, title: e.target.value } : item
                             );
-                            setExperiences(updated);
+                            setLocalExperiences(updated);
                           }}
                         />
                         <Input
                           placeholder="Nome azienda"
                           value={exp.company}
                           onChange={(e) => {
-                            const updated = experiences.map(item =>
+                            const updated = localExperiences.map(item =>
                               item.id === exp.id ? { ...item, company: e.target.value } : item
                             );
-                            setExperiences(updated);
+                            setLocalExperiences(updated);
                           }}
                         />
                         <Input
                           placeholder="Periodo (es. 2023-2024)"
                           value={exp.period}
                           onChange={(e) => {
-                            const updated = experiences.map(item =>
+                            const updated = localExperiences.map(item =>
                               item.id === exp.id ? { ...item, period: e.target.value } : item
                             );
-                            setExperiences(updated);
+                            setLocalExperiences(updated);
                           }}
                         />
                         <Textarea
@@ -126,10 +205,10 @@ const BioExperiences = () => {
                           value={exp.description}
                           rows={2}
                           onChange={(e) => {
-                            const updated = experiences.map(item =>
+                            const updated = localExperiences.map(item =>
                               item.id === exp.id ? { ...item, description: e.target.value } : item
                             );
-                            setExperiences(updated);
+                            setLocalExperiences(updated);
                           }}
                         />
                       </CardContent>
