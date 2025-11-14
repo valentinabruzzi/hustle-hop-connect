@@ -3,6 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -56,53 +58,55 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/dipendenti" element={<Dipendenti />} />
-          <Route path="/promoter" element={<Promoter />} />
-          <Route path="/aziende" element={<Aziende />} />
-          <Route path="/contacts" element={<Contacts />} />
-          <Route path="/faq-dipendenti" element={<FaqDipendenti />} />
-          <Route path="/faq-aziende" element={<FaqAziende />} />
-          <Route path="/come-funziona-hostess" element={<ComeFunzionaHostess />} />
-          <Route path="/come-funziona-aziende" element={<ComeFunzionaAziende />} />
-          <Route path="/crea-un-profilo-hostess-steward-di-successo" element={<CreateProfile />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/cookie" element={<Cookie />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/esplora-lavori" element={<ExploreJobs />} />
-          <Route path="/lavoro/:id" element={<JobDetail />} />
-          <Route path="/dipendente-milano/:id" element={<PublicProfile />} />
-          <Route path="/user/dashboard" element={<Dashboard />} />
-          <Route path="/user/dashboard/notifications" element={<Notifications />} />
-          <Route path="/user/dashboard/feedbacks" element={<Feedbacks />} />
-          <Route path="/user/dashboard/applications/sended" element={<SendedApplications />} />
-          <Route path="/user/dashboard/applications/fastbooks" element={<Fastbooks />} />
-          <Route path="/user/dashboard/applications/confirmed" element={<ConfirmedJobs />} />
-          <Route path="/user/dashboard/applications/closed" element={<ClosedJobs />} />
-          <Route path="/user/settings" element={<Settings />} />
-          <Route path="/user/settings/edit-personal-data" element={<PersonalData />} />
-          <Route path="/user/settings/edit-gallery" element={<Gallery />} />
-          <Route path="/user/settings/edit-notifications" element={<NotificationsSettings />} />
-          <Route path="/user/settings/edit-social-info" element={<SocialInfo />} />
-          <Route path="/user/settings/edit-bio-and-experiences" element={<BioExperiences />} />
-          <Route path="/user/settings/edit-physical-info" element={<PhysicalInfo />} />
-          <Route path="/user/settings/edit-more-informations" element={<MoreInfo />} />
-          <Route path="/user/settings/change-email-address" element={<ChangeEmail />} />
-          <Route path="/user/settings/change-password" element={<ChangePassword />} />
-          <Route path="/user/settings/edit-phone" element={<EditPhone />} />
-          <Route path="/user/settings/edit-address" element={<EditAddress />} />
-          <Route path="/user/settings/edit-documents" element={<Documents />} />
-          <Route path="/user/settings/edit-contracts" element={<Contracts />} />
-          <Route path="/user/settings/disable-profile" element={<DisableProfile />} />
-          <Route path="/user/settings/payment-info" element={<PaymentInfo />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/dipendenti" element={<Dipendenti />} />
+            <Route path="/promoter" element={<Promoter />} />
+            <Route path="/aziende" element={<Aziende />} />
+            <Route path="/contacts" element={<Contacts />} />
+            <Route path="/faq-dipendenti" element={<FaqDipendenti />} />
+            <Route path="/faq-aziende" element={<FaqAziende />} />
+            <Route path="/come-funziona-hostess" element={<ComeFunzionaHostess />} />
+            <Route path="/come-funziona-aziende" element={<ComeFunzionaAziende />} />
+            <Route path="/crea-un-profilo-hostess-steward-di-successo" element={<CreateProfile />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/cookie" element={<Cookie />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/esplora-lavori" element={<ExploreJobs />} />
+            <Route path="/lavoro/:id" element={<JobDetail />} />
+            <Route path="/dipendente-milano/:id" element={<PublicProfile />} />
+            <Route path="/user/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/user/dashboard/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+            <Route path="/user/dashboard/feedbacks" element={<ProtectedRoute><Feedbacks /></ProtectedRoute>} />
+            <Route path="/user/dashboard/applications/sended" element={<ProtectedRoute><SendedApplications /></ProtectedRoute>} />
+            <Route path="/user/dashboard/applications/fastbooks" element={<ProtectedRoute><Fastbooks /></ProtectedRoute>} />
+            <Route path="/user/dashboard/applications/confirmed" element={<ProtectedRoute><ConfirmedJobs /></ProtectedRoute>} />
+            <Route path="/user/dashboard/applications/closed" element={<ProtectedRoute><ClosedJobs /></ProtectedRoute>} />
+            <Route path="/user/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="/user/settings/edit-personal-data" element={<ProtectedRoute><PersonalData /></ProtectedRoute>} />
+            <Route path="/user/settings/edit-gallery" element={<ProtectedRoute><Gallery /></ProtectedRoute>} />
+            <Route path="/user/settings/edit-notifications" element={<ProtectedRoute><NotificationsSettings /></ProtectedRoute>} />
+            <Route path="/user/settings/edit-social-info" element={<ProtectedRoute><SocialInfo /></ProtectedRoute>} />
+            <Route path="/user/settings/edit-bio-and-experiences" element={<ProtectedRoute><BioExperiences /></ProtectedRoute>} />
+            <Route path="/user/settings/edit-physical-info" element={<ProtectedRoute><PhysicalInfo /></ProtectedRoute>} />
+            <Route path="/user/settings/edit-more-informations" element={<ProtectedRoute><MoreInfo /></ProtectedRoute>} />
+            <Route path="/user/settings/change-email-address" element={<ProtectedRoute><ChangeEmail /></ProtectedRoute>} />
+            <Route path="/user/settings/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
+            <Route path="/user/settings/edit-phone" element={<ProtectedRoute><EditPhone /></ProtectedRoute>} />
+            <Route path="/user/settings/edit-address" element={<ProtectedRoute><EditAddress /></ProtectedRoute>} />
+            <Route path="/user/settings/edit-documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
+            <Route path="/user/settings/edit-contracts" element={<ProtectedRoute><Contracts /></ProtectedRoute>} />
+            <Route path="/user/settings/disable-profile" element={<ProtectedRoute><DisableProfile /></ProtectedRoute>} />
+            <Route path="/user/settings/payment-info" element={<ProtectedRoute><PaymentInfo /></ProtectedRoute>} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
