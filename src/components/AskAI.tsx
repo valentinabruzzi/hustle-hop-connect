@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { Sparkles, Send, Loader2 } from "lucide-react";
 
 interface AskAIProps {
@@ -17,6 +18,7 @@ export const AskAI = ({ userType }: AskAIProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { user, session } = useAuth();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -27,6 +29,15 @@ export const AskAI = ({ userType }: AskAIProps) => {
       toast({
         title: "Inserisci una domanda",
         description: "Scrivi qualcosa prima di inviare",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!user || !session) {
+      toast({
+        title: "Autenticazione richiesta",
+        description: "Devi essere autenticato per usare l'AI",
         variant: "destructive",
       });
       return;
