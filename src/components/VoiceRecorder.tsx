@@ -51,40 +51,89 @@ export const VoiceRecorder = ({ onTranscript, disabled }: VoiceRecorderProps) =>
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
+      try {
+        // Ensure the last dataavailable fires
+        if (typeof mediaRecorderRef.current.requestData === 'function') {
+          mediaRecorderRef.current.requestData();
+        }
+      } catch (e) {
+        console.warn('requestData failed:', e);
+      } finally {
+        mediaRecorderRef.current.stop();
+        setIsRecording(false);
+      }
     }
   };
 
   const transcribeAudio = async (audioBlob: Blob) => {
     setIsProcessing(true);
-    
     try {
+      // Guard: avoid sending empty/very short audio
+      if (!audioBlob || audioBlob.size < 1024) {
+        toast({
+          title: "Nessun audio registrato",
+          description: "Tieni premuto un po' più a lungo e riprova.",
+          variant: "destructive",
+        });
+        setIsProcessing(false);
+        return;
+      }
+
       // Convert blob to base64
       const reader = new FileReader();
-      reader.readAsDataURL(audioBlob);
-      
-      reader.onloadend = async () => {
-        const base64Audio = (reader.result as string).split(',')[1];
-        
-        const { data, error } = await supabase.functions.invoke('transcribe-audio', {
-          body: { audio: base64Audio }
+      reader.onerror = () => {
+        console.error('FileReader error while reading audio blob');
+        toast({
+          title: "Errore",
+          description: "Problema nella lettura dell'audio.",
+          variant: "destructive",
         });
+        setIsProcessing(false);
+      };
 
-        if (error) throw error;
-        
-        if (data?.text) {
-          onTranscript(data.text);
+      reader.onloadend = async () => {
+        const result = reader.result as string | null;
+        const base64Audio = result ? result.split(',')[1] : "";
+
+        if (!base64Audio) {
+          toast({
+            title: "Audio vuoto",
+            description: "La registrazione è risultata vuota. Riprova.",
+            variant: "destructive",
+          });
+          setIsProcessing(false);
+          return;
+        }
+
+        try {
+          const { data, error } = await supabase.functions.invoke('transcribe-audio', {
+            body: { audio: base64Audio }
+          });
+
+          if (error) throw error;
+          if (data?.text) {
+            onTranscript(data.text);
+          }
+        } catch (err) {
+          console.error('Error transcribing audio:', err);
+          toast({
+            title: "Errore",
+            description: "Impossibile trascrivere l'audio",
+            variant: "destructive",
+          });
+        } finally {
+          setIsProcessing(false);
         }
       };
+
+      reader.readAsDataURL(audioBlob);
     } catch (error) {
-      console.error('Error transcribing audio:', error);
+      console.error('Error preparing transcription:', error);
       toast({
         title: "Errore",
-        description: "Impossibile trascrivere l'audio",
+        description: "Impossibile avviare la trascrizione",
         variant: "destructive",
       });
-    } finally {
       setIsProcessing(false);
     }
   };
