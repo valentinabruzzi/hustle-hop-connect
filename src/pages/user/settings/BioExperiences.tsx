@@ -29,7 +29,7 @@ const BioExperiences = () => {
   }, [profile]);
 
   useEffect(() => {
-    if (experiences) {
+    if (experiences && experiences.length > 0 && localExperiences.length === 0) {
       setLocalExperiences(experiences);
     }
   }, [experiences]);
@@ -156,7 +156,7 @@ const BioExperiences = () => {
                     </Button>
                   </div>
 
-                  {experiences.map((exp, index) => (
+                  {localExperiences.map((exp, index) => (
                     <Card key={exp.id}>
                       <CardContent className="p-4 space-y-3">
                         <div className="flex justify-between items-start">
@@ -165,7 +165,7 @@ const BioExperiences = () => {
                             type="button"
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleRemoveExperience(exp.id)}
+                            onClick={() => handleRemoveExperience(exp)}
                           >
                             <X className="h-4 w-4" />
                           </Button>
@@ -173,43 +173,23 @@ const BioExperiences = () => {
                         <Input
                           placeholder="Titolo ruolo"
                           value={exp.title}
-                          onChange={(e) => {
-                            const updated = localExperiences.map(item =>
-                              item.id === exp.id ? { ...item, title: e.target.value } : item
-                            );
-                            setLocalExperiences(updated);
-                          }}
+                          onChange={(e) => updateLocalExperience(exp.id, 'title', e.target.value)}
                         />
                         <Input
                           placeholder="Nome azienda"
                           value={exp.company}
-                          onChange={(e) => {
-                            const updated = localExperiences.map(item =>
-                              item.id === exp.id ? { ...item, company: e.target.value } : item
-                            );
-                            setLocalExperiences(updated);
-                          }}
+                          onChange={(e) => updateLocalExperience(exp.id, 'company', e.target.value)}
                         />
                         <Input
                           placeholder="Periodo (es. 2023-2024)"
                           value={exp.period}
-                          onChange={(e) => {
-                            const updated = localExperiences.map(item =>
-                              item.id === exp.id ? { ...item, period: e.target.value } : item
-                            );
-                            setLocalExperiences(updated);
-                          }}
+                          onChange={(e) => updateLocalExperience(exp.id, 'period', e.target.value)}
                         />
                         <Textarea
                           placeholder="Breve descrizione"
-                          value={exp.description}
+                          value={exp.description || ''}
                           rows={2}
-                          onChange={(e) => {
-                            const updated = localExperiences.map(item =>
-                              item.id === exp.id ? { ...item, description: e.target.value } : item
-                            );
-                            setLocalExperiences(updated);
-                          }}
+                          onChange={(e) => updateLocalExperience(exp.id, 'description', e.target.value)}
                         />
                       </CardContent>
                     </Card>

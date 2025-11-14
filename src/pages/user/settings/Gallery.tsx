@@ -1,34 +1,88 @@
-import { useState } from "react";
+import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Upload, X, Star } from "lucide-react";
+import { useGallery } from "@/hooks/useGallery";
+import { ArrowLeft, Upload, X, Star, Loader2 } from "lucide-react";
 
 const Gallery = () => {
   const { toast } = useToast();
-  const [photos, setPhotos] = useState([
-    { id: 1, url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop", isProfile: true },
-    { id: 2, url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop", isProfile: false },
-    { id: 3, url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop", isProfile: false },
-  ]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { photos, isLoading, uploadPhoto, deletePhoto, setProfilePicture } = useGallery();
 
-  const handleRemove = (id: number) => {
-    setPhotos(photos.filter(p => p.id !== id));
-    toast({
-      title: "Foto rimossa",
-      description: "La foto è stata eliminata dalla gallery.",
-    });
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Errore",
+        description: "Il file deve essere un'immagine",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "Errore",
+        description: "Il file non può superare i 10MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await uploadPhoto.mutateAsync(file);
+      toast({
+        title: "Foto caricata",
+        description: "La foto è stata aggiunta alla gallery.",
+      });
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error) {
+      toast({
+        title: "Errore",
+        description: "Impossibile caricare la foto",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleSetProfile = (id: number) => {
-    setPhotos(photos.map(p => ({ ...p, isProfile: p.id === id })));
-    toast({
-      title: "Foto profilo aggiornata",
-      description: "La nuova foto profilo è stata impostata.",
-    });
+  const handleRemove = async (id: string) => {
+    try {
+      await deletePhoto.mutateAsync(id);
+      toast({
+        title: "Foto rimossa",
+        description: "La foto è stata eliminata dalla gallery.",
+      });
+    } catch (error) {
+      toast({
+        title: "Errore",
+        description: "Impossibile eliminare la foto",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSetProfile = async (id: string) => {
+    try {
+      await setProfilePicture.mutateAsync(id);
+      toast({
+        title: "Foto profilo aggiornata",
+        description: "La nuova foto profilo è stata impostata.",
+      });
+    } catch (error) {
+      toast({
+        title: "Errore",
+        description: "Impossibile impostare la foto profilo",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -49,52 +103,85 @@ const Gallery = () => {
               <CardDescription>Gestisci le foto del tuo profilo pubblico</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer">
-                <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <div 
+                className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                  disabled={uploadPhoto.isPending}
+                />
+                {uploadPhoto.isPending ? (
+                  <Loader2 className="h-12 w-12 text-muted-foreground mx-auto mb-4 animate-spin" />
+                ) : (
+                  <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                )}
                 <p className="text-sm font-medium mb-2">Carica nuove foto</p>
                 <p className="text-xs text-muted-foreground mb-4">
                   PNG, JPG fino a 10MB
                 </p>
-                <Button variant="outline">Seleziona File</Button>
+                <Button 
+                  variant="outline" 
+                  type="button"
+                  disabled={uploadPhoto.isPending}
+                >
+                  {uploadPhoto.isPending ? 'Caricamento...' : 'Seleziona File'}
+                </Button>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {photos.map((photo) => (
-                  <div key={photo.id} className="relative group">
-                    <img 
-                      src={photo.url} 
-                      alt={`Foto ${photo.id}`}
-                      className="w-full aspect-square object-cover rounded-lg"
-                    />
-                    {photo.isProfile && (
-                      <div className="absolute top-2 left-2">
-                        <div className="bg-primary text-primary-foreground px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
-                          <Star className="h-3 w-3 fill-current" />
-                          Profilo
+              {isLoading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : photos.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>Nessuna foto caricata</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {photos.map((photo) => (
+                    <div key={photo.id} className="relative group">
+                      <img 
+                        src={photo.photo_url} 
+                        alt={`Foto ${photo.id}`}
+                        className="w-full aspect-square object-cover rounded-lg"
+                      />
+                      {photo.is_profile_picture && (
+                        <div className="absolute top-2 left-2">
+                          <div className="bg-primary text-primary-foreground px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
+                            <Star className="h-3 w-3 fill-current" />
+                            Profilo
+                          </div>
                         </div>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
-                      {!photo.isProfile && (
+                      )}
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+                        {!photo.is_profile_picture && (
+                          <Button 
+                            size="sm" 
+                            variant="secondary"
+                            onClick={() => handleSetProfile(photo.id)}
+                            disabled={setProfilePicture.isPending}
+                          >
+                            <Star className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button 
                           size="sm" 
-                          variant="secondary"
-                          onClick={() => handleSetProfile(photo.id)}
+                          variant="destructive"
+                          onClick={() => handleRemove(photo.id)}
+                          disabled={deletePhoto.isPending}
                         >
-                          <Star className="h-4 w-4" />
+                          <X className="h-4 w-4" />
                         </Button>
-                      )}
-                      <Button 
-                        size="sm" 
-                        variant="destructive"
-                        onClick={() => handleRemove(photo.id)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
