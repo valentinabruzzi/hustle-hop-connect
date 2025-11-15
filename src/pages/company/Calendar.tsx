@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
@@ -9,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { format, parseISO } from "date-fns";
 import { it } from "date-fns/locale";
-import { CalendarIcon, MapPin, Users, Euro } from "lucide-react";
+import { CalendarIcon, MapPin, Users, Euro, ArrowLeft } from "lucide-react";
 
 const CompanyCalendar = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -62,6 +64,13 @@ const CompanyCalendar = () => {
 
       <div className="flex-1 bg-muted/30">
         <div className="container mx-auto px-4 py-8">
+          <Button variant="ghost" asChild className="mb-6">
+            <Link to="/user/dashboard">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Torna alla Dashboard
+            </Link>
+          </Button>
+
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
               <CalendarIcon className="h-8 w-8" />
