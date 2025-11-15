@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Phone, MapPin, Clock } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, ArrowLeft } from "lucide-react";
 
 const Contacts = () => {
   const { toast } = useToast();
@@ -34,6 +35,12 @@ const Contacts = () => {
       <div className="flex-1 bg-muted/30 py-20">
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
+            <Button variant="ghost" asChild className="mb-6">
+              <Link to="/">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Torna alla Home
+              </Link>
+            </Button>
             <div className="text-center mb-12">
               <h1 className="text-4xl font-bold mb-4">Contattaci</h1>
               <p className="text-xl text-muted-foreground">

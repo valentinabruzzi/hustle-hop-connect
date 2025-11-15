@@ -1,6 +1,9 @@
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { ArrowLeft } from "lucide-react";
 
 const FaqAziende = () => {
   return (
@@ -9,6 +12,12 @@ const FaqAziende = () => {
       <div className="flex-1 bg-muted/30 py-20">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
+            <Button variant="ghost" asChild className="mb-6">
+              <Link to="/aziende">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Torna Indietro
+              </Link>
+            </Button>
             <h1 className="text-4xl font-bold mb-4 text-center">FAQ Aziende</h1>
             <p className="text-xl text-muted-foreground mb-12 text-center">
               Tutto quello che devi sapere per trovare il personale perfetto

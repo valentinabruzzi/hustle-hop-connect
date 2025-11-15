@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { Calendar, User, ArrowRight } from "lucide-react";
+import { Calendar, User, ArrowRight, ArrowLeft } from "lucide-react";
 
 const Blog = () => {
   const posts = [
@@ -52,6 +53,12 @@ const Blog = () => {
         </section>
 
         <div className="container mx-auto px-4 py-20">
+          <Button variant="ghost" asChild className="mb-6">
+            <Link to="/">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Torna alla Home
+            </Link>
+          </Button>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {posts.map((post) => (
               <Card key={post.id} className="hover:shadow-lg transition-shadow overflow-hidden">

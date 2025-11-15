@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { FileText, Users, CheckCircle, Calendar, Star } from "lucide-react";
+import { FileText, Users, CheckCircle, Calendar, Star, ArrowLeft } from "lucide-react";
 
 const ComeFunzionaAziende = () => {
   return (
@@ -24,6 +24,12 @@ const ComeFunzionaAziende = () => {
 
         <section className="py-20 bg-background">
           <div className="container mx-auto px-4">
+            <Button variant="ghost" asChild className="mb-6">
+              <Link to="/aziende">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Torna Indietro
+              </Link>
+            </Button>
             <div className="max-w-4xl mx-auto space-y-12">
               <div className="flex gap-6 items-start">
                 <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-2xl flex-shrink-0">

@@ -1,5 +1,8 @@
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { ArrowLeft } from "lucide-react";
 
 const Cookie = () => {
   return (
@@ -7,6 +10,12 @@ const Cookie = () => {
       <Navbar />
       <div className="flex-1 bg-background py-20">
         <div className="container mx-auto px-4">
+          <Button variant="ghost" asChild className="mb-6">
+            <Link to="/">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Torna alla Home
+            </Link>
+          </Button>
           <div className="max-w-4xl mx-auto prose prose-slate">
             <h1 className="text-4xl font-bold mb-8">Cookie Policy</h1>
             <p className="text-muted-foreground mb-8">Ultimo aggiornamento: 14 Novembre 2025</p>
