@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { Camera, FileText, Star, Award, CheckCircle } from "lucide-react";
+import { Camera, FileText, Star, Award, CheckCircle, ArrowLeft } from "lucide-react";
 
 const CreateProfile = () => {
   return (
@@ -24,6 +24,12 @@ const CreateProfile = () => {
 
         <section className="py-20 bg-background">
           <div className="container mx-auto px-4">
+            <Button variant="ghost" asChild className="mb-6">
+              <Link to="/">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Torna alla Home
+              </Link>
+            </Button>
             <div className="max-w-4xl mx-auto space-y-12">
               <div className="flex gap-6 items-start">
                 <div className="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">

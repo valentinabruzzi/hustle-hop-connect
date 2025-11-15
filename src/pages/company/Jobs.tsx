@@ -16,7 +16,8 @@ import {
   Users,
   Edit,
   Plus,
-  TrendingUp
+  TrendingUp,
+  ArrowLeft
 } from "lucide-react";
 
 const CompanyJobs = () => {
@@ -54,6 +55,13 @@ const CompanyJobs = () => {
 
       <div className="flex-1 bg-muted/30">
         <div className="container mx-auto px-4 py-8">
+          <Button variant="ghost" asChild className="mb-6">
+            <Link to="/user/dashboard">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Torna alla Dashboard
+            </Link>
+          </Button>
+
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-3xl font-bold mb-2">I Tuoi Lavori</h1>

@@ -29,7 +29,8 @@ import {
   Linkedin,
   Loader2,
   Car,
-  Plane
+  Plane,
+  ArrowLeft
 } from "lucide-react";
 import { useState } from "react";
 
@@ -118,6 +119,12 @@ const PublicProfile = () => {
 
       <div className="flex-1 bg-muted/30">
         <div className="container mx-auto px-4 py-8">
+          <Button variant="ghost" asChild className="mb-6">
+            <Link to="/esplora-profili">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Torna ai Profili
+            </Link>
+          </Button>
           <div className="max-w-5xl mx-auto">
             {/* Header Card */}
             <Card className="mb-6">

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { Megaphone, TrendingUp, Users, Target } from "lucide-react";
+import { Megaphone, TrendingUp, Users, Target, ArrowLeft } from "lucide-react";
 
 const Promoter = () => {
   return (
@@ -29,6 +29,12 @@ const Promoter = () => {
 
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
+          <Button variant="ghost" asChild className="mb-6">
+            <Link to="/">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Torna alla Home
+            </Link>
+          </Button>
           <h2 className="text-3xl font-bold text-center mb-12">Opportunità per Promoter</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
             <Card>

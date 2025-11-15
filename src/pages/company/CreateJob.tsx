@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,7 @@ import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Briefcase } from "lucide-react";
+import { Briefcase, ArrowLeft } from "lucide-react";
 
 const CreateJob = () => {
   const navigate = useNavigate();
@@ -78,6 +78,13 @@ const CreateJob = () => {
 
       <div className="flex-1 bg-muted/30 py-12">
         <div className="container max-w-3xl mx-auto px-4">
+          <Button variant="ghost" asChild className="mb-6">
+            <Link to="/user/dashboard">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Torna alla Dashboard
+            </Link>
+          </Button>
+
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-2">
               <Briefcase className="h-8 w-8 text-primary" />
