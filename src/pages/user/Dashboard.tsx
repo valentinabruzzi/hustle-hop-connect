@@ -112,7 +112,7 @@ const Dashboard = () => {
                   </Link>
                 </Button>
                 <Button variant="outline" asChild size="sm">
-                  <Link to={`/dipendente-milano/${profile?.id}`}>
+                  <Link to="/user/publicprofile">
                     <User className="h-4 w-4 mr-2" />
                     Profilo Pubblico
                   </Link>
