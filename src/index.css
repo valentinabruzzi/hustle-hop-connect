@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,24 +10,24 @@ All colors MUST be HSL.
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 224 71% 4%;
+    --foreground: 0 0% 0%;
 
     --card: 0 0% 100%;
-    --card-foreground: 224 71% 4%;
+    --card-foreground: 210 3.9216% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71% 4%;
+    --popover-foreground: 210 3.9216% 20%;
 
     --primary: 201 100% 35.4902%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 13% 96%;
+    --secondary: 210 3.9216% 80%;
     --secondary-foreground: 0 0% 0%;
 
-    --muted: 220 13% 96%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 210 3.9216% 80%;
+    --muted-foreground: 210 1.6807% 53.3333%;
 
-    --accent: 25 95% 53%;
+    --accent: 201 100% 35.4902%;
     --accent-foreground: 0 0% 100%;
 
     --success: 142 71% 45%;
@@ -35,19 +36,19 @@ All colors MUST be HSL.
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 217 19.1176% 26.6667%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
+    --border: 210 3.9216% 80%;
     --input: 220 13% 91%;
-    --ring: 221 83% 53%;
+    --ring: 201 100% 35.4902%;
 
     --radius: 0.75rem;
 
     --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%), hsl(221 83% 63%));
     --gradient-accent: linear-gradient(135deg, hsl(25 95% 53%), hsl(25 95% 63%));
     --gradient-hero: linear-gradient(135deg, hsl(221 83% 53%) 0%, hsl(221 83% 63%) 50%, hsl(25 95% 53%) 100%);
-    
+
     --shadow-sm: 0 1px 2px 0 hsl(220 13% 91% / 0.05);
     --shadow-md: 0 4px 6px -1px hsl(220 13% 91% / 0.1);
     --shadow-lg: 0 10px 15px -3px hsl(220 13% 91% / 0.1);
@@ -63,6 +64,7 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 224 71% 4%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 221 83% 53%;
+    --font-sans: "Source Sans Pro", ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
   }
 
   .dark {
@@ -108,6 +110,7 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 215 28% 17%;
     --sidebar-ring: 221 83% 53%;
+    --font-sans: "Source Sans Pro", ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
   }
 }
 
