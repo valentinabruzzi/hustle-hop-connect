@@ -106,7 +106,6 @@ export default {
   		},
   		fontFamily: {
   			sans: [
-  				'Source Sans Pro',
   				'ui-sans-serif',
   				'system-ui',
   				'sans-serif',
